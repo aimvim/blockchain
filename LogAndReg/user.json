@@ -1,5 +1,11 @@
 {
+"user/volunteer":{
   "id":"id" ,
   "password": "password",
   "#email": "之后有机会的话可以加上"
-}
+},
+"admin": {
+  "id":"id" ,
+  "password": "password",
+  "register_code": 1
+}}
