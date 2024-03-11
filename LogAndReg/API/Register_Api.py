@@ -60,7 +60,7 @@ def volunteer_register():
     cursor = db.cursor()
     #密码存入数据库中采用密文的形式
     CryptPasswd = hashlib.sha256(VolunteerInfo["password"].encode("utf8")).hexdigest()#哈希函数加密使用utf8编码形式
-    sql ='insert into UserInfo values("{}","{}")'.format(VolunteerInfo['id'],CryptPasswd)#将user信息加入到数据库中
+    sql ='insert into VolunteerInfo values("{}","{}")'.format(VolunteerInfo['id'],CryptPasswd)#将user信息加入到数据库中
     #将注册信息加入到数据库中，或者返回id已被使用的错误
     try:
         cursor.execute(sql)
