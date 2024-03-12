@@ -108,9 +108,9 @@ def AcCreate():
     adress = AdCre(private_key)
     print(adress)
     response = {
-        "sk":str(binascii.hexlify(private_key)),
-        "pk":str(binascii.hexlify(publick_key)),
-        "adress":str(adress),
+        "sk":binascii.hexlify(private_key).decode(),
+        "pk":binascii.hexlify(publick_key).decode(),
+        "adress":adress,
         "WARNING!":"请保存好你的私钥！"
     }
     return jsonify(response)
@@ -120,8 +120,10 @@ def AcCreate():
 
 if __name__ == "__main__":
     app.run()
+    '''
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
     app.run(debug=True, host='0.0.0.0', port=5000)
+    '''
