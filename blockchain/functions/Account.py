@@ -9,7 +9,7 @@ from Crypto.Signature import pkcs1_15
 from ecdsa import SigningKey, SECP256k1, VerifyingKey
 from Crypto.PublicKey import RSA
 
-
+# 这里的函数是用于私钥生成，公钥生成，生成签名，与验证签名
 def GenSk():  # 生成私钥
     PrivateKey = os.urandom(32)
     return PrivateKey
