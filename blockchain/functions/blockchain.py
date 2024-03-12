@@ -164,7 +164,5 @@ class BlockChain:
                 HashList = v
         return HashList[0]
 
-    def AccountCreate(self):
-        pass
 
 
