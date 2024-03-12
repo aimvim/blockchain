@@ -3,6 +3,8 @@ import json
 import time
 from argparse import ArgumentParser
 from urllib.parse import urlparse
+
+import requests
 from flask import Flask, request, jsonify
 
 class BlockChain:
@@ -12,16 +14,18 @@ class BlockChain:
         self.transaction = []  # 出块奖励的交易信息都将存放在这里，更多交易信息自由决定
         self.TheBlockAward = 50
 
-    def add_block(self,block):
+    def add_block(self,block):#添加区块，并对其正确性进行验证
         last_block = self.blockchain[-1]
-        if block['blockheader']['index'] == self.blockchain[-1]['blockheader']['index'] + 1:
-            if self.POW(last_block, block):
-                self.blockchain.append(block)
-                return True
-            else:
-                return False
+        if block['blockheader']['merkle_root'] != self.MerkleRoot(block['block']):
+            return False#对比两者merkle_root值是否相同
+        elif block['blockheader']['index'] == self.blockchain[-1]['blockheader']['index'] + 1:
+                if self.POW(last_block, block):
+                    self.blockchain.append(block)
+                    return True
+                else:
+                    return False
         else:
-            return False
+                return False
 
     # 生成创世区块
     def genesis_block(self):
@@ -48,13 +52,13 @@ class BlockChain:
         else:
             return False
 
-    def hash(self,block):
+    def hash(self,block):#哈希函数
         block_hash = hashlib.sha256(str(block['blockheader']).encode("utf8"))  # 字符串进行UTF-8编码之后才能进行哈希
         return block_hash.hexdigest()
 
         # 注册节点
 
-    def register_node(self,address):
+    def register_node(self,address):#注册节点
         parsed_url = urlparse(address)
         # 如果网络地址不为空，那么就添加没有http://之类修饰的纯的地址，如：www.baidu.com
         if parsed_url.netloc:
@@ -66,10 +70,23 @@ class BlockChain:
         else:
             raise ValueError('Invalid URL')  # 说明这是一个非标准的Url
 
-    def longest_chain(self):
+    def longest_chain(self):#处理不同节点中区块链长度不同的问题
         neighbours = self.nodes
         new_chain = None
-        pass  # 需要先知道访问哪个位置
+        max_length = len(self.blockchain)
+        for node in neighbours:
+            response = requests.get(f"http://{node}/chain")#到每个节点的chain页面
+            if response.status_code == 200:
+                length = response.json()[-1]['blockheader']['index'] + 1
+                chain = response.json()#直接得到该节点上的链
+                if length > max_length:
+                    max_length = length
+                    new_chain = chain
+        if new_chain:
+            self.blockchain = new_chain
+            return True
+        else:
+            return False
 
     def TheBlokCheck(self,block):  # 这是针对单个区块的检查，还需要对整个链上的区块进行检查
         required = ["blockheader", "block"]
@@ -120,7 +137,28 @@ class BlockChain:
         else:
             return False
 
-    def MerkleRoot(self,tx):
-        # 该函数的最终返回值为根哈希值
-        pass
+        # 左右两个节点生成方法是通过直接拼接得到的
+    def data_hash(self, data):  # 要求输入的data是字符串类型
+        data_hash = hashlib.sha256(data.encode("utf8")).hexdigest()
+        return data_hash
 
+    def MerkleRoot(self,block):  # block中存放的全部都是交易内容
+        HashList = []
+        if len(block) == 0:
+            return 0
+        else:
+            for tx in block:
+                HashList.append(self.data_hash(str(tx)))  # 将所有交易加密之后放上
+        while len(HashList) != 1:  # 重复下述操作
+            if len(HashList) % 2 == 0:  # HashList长度为偶数
+                v = []
+                for i in range(0, len(HashList), 2):
+                    v.append(self.data_hash(str(HashList[i]) + str(HashList[i + 1])))
+                HashList = v
+            else:
+                v = []
+                for i in range(0, len(HashList) - 1, 2):
+                    v.append(self.data_hash(str(HashList[i]) + str(HashList[i + 1])))
+                v.append(self.data_hash(str(HashList[-1])))
+                HashList = v
+        return HashList[0]

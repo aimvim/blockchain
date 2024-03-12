@@ -91,17 +91,17 @@ def longchain():
         }
     return jsonify(response),200
 
-@app.route("/tx/merkleroot",methods=['GET'])
-def TxRoot():#使用方法——输入交易返回最终root值
-    tx = request.get_json()
-    print(tx)
-    return blockchain.MerkleRoot(tx)
+@app.route("/test",methods=['get'])
+def test():
+    response = requests.get("http://127.0.0.1:5000/chain")
+    print(response.json())
+    return "True";
 
 
 if __name__ == "__main__":
     app.run()
     parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
+    parser.add_argument('-p', '--port', default=5001, type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=port)
