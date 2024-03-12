@@ -1,3 +1,4 @@
+import binascii
 import hashlib
 import os
 import base58
@@ -16,4 +17,5 @@ double_hash = hashlib.sha256(hashlib.sha256(prefix_and_hash160).digest()).digest
 checksum = double_hash[:4]
 pre_address = prefix_and_hash160 + checksum
 address = base58.b58encode(pre_address)
-print (address.decode())
+print (len(address.decode()))
+print(len(binascii.hexlify(public_key)))

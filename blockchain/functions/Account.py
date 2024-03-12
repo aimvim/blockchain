@@ -3,6 +3,9 @@ import hashlib
 import os
 import base58
 import ecdsa
+import pymysql
+
+
 def GenSk():#生成私钥
     PrivateKey = os.urandom(32)
     return PrivateKey #十六进制转二进制之后再调整
@@ -25,11 +28,24 @@ def AdCre(private_key):#生成账户地址，并将公钥与地址存入数据�
     checksum = double_hash[:4]
     pre_address = prefix_and_hash160 + checksum
     address = base58.b58encode(pre_address)
+    db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
+    cursor = db.cursor()
+    sql = 'insert into pkadress value("{}","{}")'.format(str(binascii.hexlify(public_key)),str(address.decode()))
+    try:
+        cursor.execute(sql)
+        db.commit()
+        print("123")
+    except Exception as e:
+        print(e)
+    cursor.close()
+    db.close()
     return address.decode()
+#生成地址和签名之后，需要将其存入数据库中
+#正常流程上来说，生成私钥，签名，地址均直接一步生成
 
 def GenSig(sk,msg):#根据消息与私钥生成签名
     pass
-def VerifySig():#检验签名的正确性
+def VerifySig():#检验签名的正确性.
     pass
 
 #采用UTXO格式

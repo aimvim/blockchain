@@ -1,3 +1,4 @@
+import binascii
 import hashlib
 import json
 import time
@@ -5,6 +6,7 @@ from argparse import ArgumentParser
 from urllib.parse import urlparse
 from flask import Flask, request, jsonify
 from blockchain.functions.blockchain import *
+from blockchain.functions.Account import *
 
 blockchain = BlockChain()
 blockchain.genesis_block()
@@ -96,6 +98,24 @@ def TxRoot():#使用方法——输入交易返回最终root值
     tx = request.get_json()
     print(tx)
     return blockchain.MerkleRoot(tx)
+
+@app.route("/AcCreate",methods=['GET'])
+def AcCreate():
+    private_key = GenSk()
+    print(private_key)
+    publick_key = GenPk(private_key)
+    print(publick_key)
+    adress = AdCre(private_key)
+    print(adress)
+    response = {
+        "sk":str(binascii.hexlify(private_key)),
+        "pk":str(binascii.hexlify(publick_key)),
+        "adress":str(adress),
+        "WARNING!":"请保存好你的私钥！"
+    }
+    return jsonify(response)
+
+
 
 
 if __name__ == "__main__":
