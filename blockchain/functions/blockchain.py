@@ -3,7 +3,7 @@ import json
 import time
 from argparse import ArgumentParser
 from urllib.parse import urlparse
-
+from blockchain.functions.Account import *
 import requests
 from flask import Flask, request, jsonify
 
@@ -104,17 +104,37 @@ class BlockChain:
     def TheTransactionCheck(self,new_transaction):  # 判断交易格式是否符合要求
         # 应该设置单个交易检查与整体交易检查
         #后续检验签名是否正确以及UTXO(是否有钱)
-        required = ["inputs", "outputs", "Fees", "index"]
-        inputs_required = ["sender_signature", "transaction_reference"]
+        required = ["data","index","signature"]
+        data_required=["inputs","outputs","Fees"]
+        inputs_required = [ "transaction_reference","sender_adress"]
         outputs_required = ["amount", "recipient"]
         if not all(k in new_transaction for k in required):
             return False
-        elif not all(l in new_transaction["inputs"] for l in inputs_required):
+        elif not all(x in new_transaction["data"] for x in data_required):
             return False
-        elif not all(p in new_transaction['outputs'] for p in outputs_required):
+        elif not all(l in new_transaction['data']["inputs"] for l in inputs_required):
             return False
-        else:
-            return True
+        elif not all(p in new_transaction['data']['outputs'] for p in outputs_required):
+            return False
+        else:#之前是检查格式是否正确，接下来是检查每个交易是否正确签名了
+            signature = new_transaction['signature']#先得到具体的签名值
+            sender_adress = new_transaction['data']['inputs']['sender_adress']
+            recipient = new_transaction['data']['outputs']['recipient']
+            db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+            cursor = db.cursor()
+            sql1 = 'select pk from pkadress where adress="{}"'.format(sender_adress)
+            sql2 = 'select adress from pkadress where adress="{}"'.format(recipient)
+            cursor.execute(sql1)
+            result1 = cursor.fetchone()
+            cursor.execute(sql2)
+            result2 = cursor.fetchone()
+            if (result1 or result2) == None:#任何一个账户是不存在的
+                return False
+            else:
+                Spk =binascii.unhexlify()(result1['pk'])#Spk是sender的公钥
+                return VerifySig(Spk,str(new_transaction['data'],signature))
+
+
 
     def CheckTransactions(self,tx):  # 这里是check，自动排序等会儿重写
         length = len(tx)

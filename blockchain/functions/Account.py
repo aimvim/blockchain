@@ -44,8 +44,10 @@ def AdCre(private_key):  # 生成账户地址，并将公钥与地址存入数�
     try:
         cursor.execute(sql)
         db.commit()
-    except Exception as e:
-        print(e)
+    except:
+        cursor.close()
+        db.close()
+        raise Exception("账号重复")
     cursor.close()
     db.close()
     return address.decode()
@@ -63,7 +65,7 @@ def GenSig(sk, msg):
     # 生成签名
     signature = sk_obj.sign(msg_bytes)
     # 返回签名的十六进制表示
-    return binascii.hexlify(signature).decode()
+    return binascii.hexlify(signature).decode()#这里生成的签名是字符串格式
 
 
 def VerifySig(pk, msg, signature):
@@ -92,5 +94,5 @@ def TxHistory():  # 返回用户交易历史（实在不行一个一个去搜）
 sk = binascii.unhexlify("942e520e28e2af56c7f9cf79fe9f082e807ee4a75a8cdb0bb9a08303011eaf35")
 pk = binascii.unhexlify("9ec11f8949f458d0ac8c32bd542b76451be1014d0e3c1264737d20a109aae3bb23ec19575e619bae0a7918e10b967717fde63a8f67186b2eca056937e4e536d0")
 signature = GenSig(sk, "123")
-print(signature)
+print(type(signature))
 print(VerifySig(pk,"12", signature))

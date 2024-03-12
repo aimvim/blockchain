@@ -96,17 +96,16 @@ def longchain():
 @app.route("/tx/merkleroot",methods=['GET'])
 def TxRoot():#使用方法——输入交易返回最终root值
     tx = request.get_json()
-    print(tx)
     return blockchain.MerkleRoot(tx)
 
 @app.route("/AcCreate",methods=['GET'])
 def AcCreate():
     private_key = GenSk()
-    print(private_key)
     publick_key = GenPk(private_key)
-    print(publick_key)
-    adress = AdCre(private_key)
-    print(adress)
+    try:
+        adress = AdCre(private_key)
+    except Exception as e:
+        return e
     response = {
         "sk":binascii.hexlify(private_key).decode(),
         "pk":binascii.hexlify(publick_key).decode(),
