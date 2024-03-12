@@ -103,6 +103,7 @@ class BlockChain:
 
     def TheTransactionCheck(self,new_transaction):  # 判断交易格式是否符合要求
         # 应该设置单个交易检查与整体交易检查
+        #后续检验签名是否正确以及UTXO(是否有钱)
         required = ["inputs", "outputs", "Fees", "index"]
         inputs_required = ["sender_signature", "transaction_reference"]
         outputs_required = ["amount", "recipient"]
@@ -162,3 +163,8 @@ class BlockChain:
                 v.append(self.data_hash(str(HashList[-1])))
                 HashList = v
         return HashList[0]
+
+    def AccountCreate(self):
+        pass
+
+
