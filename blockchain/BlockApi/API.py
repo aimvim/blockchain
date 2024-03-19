@@ -114,6 +114,16 @@ def AcCreate():
     }
     return jsonify(response)
 
+@app.route("/tx/publish",methods=['POST'])
+def TxPublish():
+    value = request.get_json()#得到表单中的数据
+    sk = binascii.unhexlify(value['private_key'])
+    pk = GenPk(sk) # 生成公钥
+    db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+    cursor = db.cursor()
+    sql = 'select pk from pkadress where pk="{}"'.format(binascii.hexlify(pk))
+    cursor.execute(sql)
+    result = 
 
 
 

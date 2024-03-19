@@ -15,7 +15,7 @@ def GenSk():  # 生成私钥
     return PrivateKey
 
 
-def GenPk(PrivateKey):  # 基于私钥生成公钥，然后生成地址？
+def GenPk(PrivateKey):  # 基于私钥生成公钥，然后生成地址？这里输入的私钥是二进制字节串
     Publick_Key = ecdsa.SigningKey.from_string(
         PrivateKey, curve=ecdsa.SECP256k1).verifying_key.to_string()
     return Publick_Key
@@ -37,7 +37,7 @@ def AdCre(private_key):  # 生成账户地址，并将公钥与地址存入数�
     address = base58.b58encode(pre_address)
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor()
-    sql = 'insert into pkadress value("{}","{}")'.format(binascii.hexlify(public_key).decode(), address.decode())
+    sql = 'insert into pkadress value("{}","{}","{}")'.format(binascii.hexlify(public_key).decode(), address.decode(),0)
     print(len(binascii.hexlify(public_key)))
     print(len(address.decode()))
     print(type(address.decode()))

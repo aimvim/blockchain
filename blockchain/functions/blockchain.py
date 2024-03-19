@@ -15,6 +15,7 @@ class BlockChain:
         self.TheBlockAward = 50
 
     def add_block(self,block):#添加区块，并对其正确性进行验证
+        #merkle_root prehash index的检验在其中操作
         last_block = self.blockchain[-1]
         if block['blockheader']['merkle_root'] != self.MerkleRoot(block['block']):
             return False#对比两者merkle_root值是否相同
@@ -106,7 +107,7 @@ class BlockChain:
         #后续检验签名是否正确以及UTXO(是否有钱)
         required = ["data","index","signature"]
         data_required=["inputs","outputs","Fees"]
-        inputs_required = [ "transaction_reference","sender_adress"]
+        inputs_required = [ "tx_nonce","sender_adress"]
         outputs_required = ["amount", "recipient"]
         if not all(k in new_transaction for k in required):
             return False
@@ -121,19 +122,30 @@ class BlockChain:
             sender_adress = new_transaction['data']['inputs']['sender_adress']
             recipient = new_transaction['data']['outputs']['recipient']
             db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+            tx_nonce = new_transaction['data']['inputs']['tx_nonce']
             cursor = db.cursor()
             sql1 = 'select pk from pkadress where adress="{}"'.format(sender_adress)
             sql2 = 'select adress from pkadress where adress="{}"'.format(recipient)
+            sql3 = 'select tx_noce from pkadress where adress={}'.format(sender_adress)
             cursor.execute(sql1)
             result1 = cursor.fetchone()
             cursor.execute(sql2)
             result2 = cursor.fetchone()
-            if (result1 or result2) == None:#任何一个账户是不存在的
-                return False
+            cursor.execute(sql3)
+            result3 = cursor.fetchone()
+            if (result1 or result2 or result3 == tx_nonce+1) == None:#任何一个账户是不存在的
+                cursor.close()
+                db.close()
             else:
-                Spk =binascii.unhexlify()(result1['pk'])#Spk是sender的公钥
-                return VerifySig(Spk,str(new_transaction['data'],signature))
-
+                Spk =binascii.unhexlify(result1['pk'])#Spk是sender的公钥
+                if VerifySig(Spk,str(new_transaction['data'],signature)):#验证签名是否符合要求
+                    sql4 = 'update table pkadress set tx_nonce={} where adress="{}"'.format(result3, sender_adress)
+                    cursor.execute(sql4)
+                    db.commit()
+                    cursor.close()
+                    db.close()
+                else:
+                    return False
 
 
     def CheckTransactions(self,tx):  # 这里是check，自动排序等会儿重写
