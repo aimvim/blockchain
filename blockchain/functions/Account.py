@@ -37,7 +37,7 @@ def AdCre(private_key):  # 生成账户地址，并将公钥与地址存入数�
     address = base58.b58encode(pre_address)
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor()
-    sql = 'insert into pkadress value("{}","{}","{}")'.format(binascii.hexlify(public_key).decode(), address.decode(),0)
+    sql = 'insert into pkadress(pk,adress) value("{}","{}")'.format(binascii.hexlify(public_key).decode(), address.decode())
     print(len(binascii.hexlify(public_key)))
     print(len(address.decode()))
     print(type(address.decode()))

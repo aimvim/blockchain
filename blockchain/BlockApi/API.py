@@ -116,14 +116,75 @@ def AcCreate():
 
 @app.route("/tx/publish",methods=['POST'])
 def TxPublish():
+    #返回对交易的加密
+    '''
+    {
+    "private_key":,
+    "sender_adress":,
+    "amount":,
+    "Fees":
+    }
+    :return:
+    '''
     value = request.get_json()#得到表单中的数据
     sk = binascii.unhexlify(value['private_key'])
     pk = GenPk(sk) # 生成公钥
+    print(pk)
+    print(binascii.hexlify(pk))
+    print(str(binascii.hexlify(pk).decode))
+    #现在生成的sk与pk都是字节串格式
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor()
-    sql = 'select pk from pkadress where pk="{}"'.format(binascii.hexlify(pk))
+    sql = 'select adress from pkadress where adress="{}"'.format(value['sender_adress'])
+    sql1 = 'select adress from pkadress where adress="{}"'.format(value['recipient'])
     cursor.execute(sql)
-    result = 
+    result1 = cursor.fetchone()
+    cursor.execute(sql1)
+    result2 = cursor.fetchone()
+    print(result1)
+    print(result2)
+    print((result1 or result2)  == None)
+    if (result1 or result2) == None:
+        cursor.close()
+        db.close()
+        return "Account Not Exist!"
+    else:
+        sql2 = 'select tx_nonce from pkadress where adress="{}"'.format(value['sender_adress'])
+        cursor.execute(sql2)
+        tx_nonce = cursor.fetchone()[0]
+        data = {
+            "inputs": {
+                "sender_adress": value['sender_adress'],
+                "tx_nonce":tx_nonce+1,
+            },
+            "outputs": {
+                "amount": value['amount'],
+                "recipient":value['recipient'],
+                "Fees":value['Fees']
+            }
+        }
+        Sig = GenSig(sk,str(data))
+        cursor.close()
+        db.close()
+        return Sig,200
+
+new_transaction ={
+  "index": 1,
+  "data": {
+  "inputs": {
+    "sender_adress": "16mUgTDy7A85PXumPKnn1EY2vpU5kt7J3r",
+    "tx_nonce": 1
+  },
+  "outputs": {
+    "amount": 12,
+    "recipient": "1M5gkaXnCebVND7SDeUyGTKhx5N3C2DDgL",
+     "Fees": 1
+  }
+},
+  "signature": "1c8c884a69aa985b868233a964cc2e9f81d4c1495a7aff6fb912c9d76d763374e930b38b2ecf5d8d5459ffc3e2d1c248d1fbb8d9ae32817b3987491c3117c26f"
+}
+
+
 
 
 
