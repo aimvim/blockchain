@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from "vue-router"
 // @ts-ignore
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
+import Home from '@/views/Home.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -16,6 +17,11 @@ const router = createRouter({
             name: 'register',
             path: '/register',
             component: Register
+        },
+        {
+            name: 'home',
+            path: '/home',
+            component: Home
         },
         {
             path: '/',

@@ -35,19 +35,23 @@
 
 <script setup lang="ts" name="Login">
   import {reactive, ref} from "vue"
+  import router from "@/router"
+
+  const formRef = ref()
   const identity = ref("用户")
   const form = reactive({
     username: "",
     password: ""
   })
-  const formRef = ref()
+
   const rules = reactive({
     username: [
       {required: true, message: "请输入用户名", trigger: "blur"},
       {max: 8, message: "用户名长度不能超过 8 个字符", trigger: ['blur', 'change']}
     ],
     password: [
-      {required: true, message: "请输入密码", trigger: "blur"}
+      {required: true, message: "请输入密码", trigger: "blur"},
+      {min: 6, message: "密码长度不能小于 6 个字符", trigger: ['blur', 'change']}
     ]
   })
 
@@ -57,6 +61,15 @@
     div.classList.add('loaded');
     div2.classList.add('loaded');
   });
+
+  function login() {
+    formRef.value.validate((value) => {
+      if (value) {
+        localStorage.setItem('identity', identity.value)
+        router.push('/home')
+      }
+    })
+  }
 
 </script>
 

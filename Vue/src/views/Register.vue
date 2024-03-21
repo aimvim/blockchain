@@ -66,20 +66,31 @@ import {reactive, ref, toRef} from "vue"
     }
   }
 
+  const codeValidator = (rule, value, callback) => {
+    if (form.identity === '管理员' && !value) {
+      callback(new Error("请输入邀请码"))
+    } else if (value.length !== 0 && value.length !== 6) {
+      callback(new Error("邀请码长度必须为 6 位"))
+    } else {
+      callback()
+    }
+  }
+
   const rules = reactive({
     username: [
       {required: true, message: "请输入用户名", trigger: "blur"},
       {max: 8, message: "用户名长度不能超过 8 个字符", trigger: ['blur', 'change']}
     ],
     password: [
-      {required: true, message: "请输入密码", trigger: "blur"}
+      {required: true, message: "请输入密码", trigger: "blur"},
+      {min: 6, message: "密码长度不能小于 6 个字符", trigger: ['blur', 'change']}
     ],
     confirmPassword: [
       {required: true, message: "请再次输入密码", trigger: "blur"},
-      {validator: passwordValidator, trigger: "blur"}
+      {validator: passwordValidator, trigger: ["blur", 'change']}
     ],
-    invitationCode: [ // TODO: required 不是动态的
-      {required: form.identity === '管理员', message: "请输入邀请码", trigger: "blur"}
+    invitationCode: [
+      {validator: codeValidator, trigger: "blur"}
     ]
   })
 
