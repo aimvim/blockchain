@@ -111,63 +111,61 @@ class BlockChain:
         # 应该设置单个交易检查与整体交易检查
         #后续检验签名是否正确以及UTXO(是否有钱)
         #print("0")
+        sender_adress = new_transaction['data']['inputs']['sender_adress']
+        Fees = new_transaction['data']['outputs']['Fees']
+        amount = new_transaction['data']['outputs']['amount']
         required = ["data","index","signature"]
         data_required=["inputs","outputs"]
         inputs_required = [ "tx_nonce","sender_adress"]
         outputs_required = ["amount", "recipient","Fees"]
         if not all(k in new_transaction for k in required):
-            print("1")
             return False
         elif not all(x in new_transaction["data"] for x in data_required):
-            print('2')
             return False
         elif not all(l in new_transaction['data']["inputs"] for l in inputs_required):
-            print('3')
             return False
         elif not all(p in new_transaction['data']['outputs'] for p in outputs_required):
-            print('4')
             return False
-        else:#之前是检查格式是否正确，接下来是检查每个交易是否正确签名了
-            signature = new_transaction['signature']#先得到具体的签名值
-            print(signature)
-            sender_adress = new_transaction['data']['inputs']['sender_adress']
-            print(sender_adress)
-            recipient = new_transaction['data']['outputs']['recipient']
-            print(recipient)
+        else:#之前是检查格式是否正确，接下来是检查每个交易的金额是否足够
             db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
-            tx_nonce = new_transaction['data']['inputs']['tx_nonce']
             cursor = db.cursor()
-            sql1 = 'select pk from pkadress where adress="{}"'.format(sender_adress)
-            sql2 = 'select adress from pkadress where adress="{}"'.format(recipient)
-            sql3 = 'select tx_nonce from pkadress where adress="{}"'.format(sender_adress)
-            cursor.execute(sql1)
-            result1 = cursor.fetchone()[0]
-            print(result1)
-            cursor.execute(sql2)
-            result2 = cursor.fetchone()[0]
-            print(result2)
-            cursor.execute(sql3)
-            result3 = cursor.fetchone()[0]
-            print(result3)
-            if (result1 is None) or (result2 is None) or (result3 is None) or (result3+1!=tx_nonce):#任何一个账户是不存在的
-                print("11")
-                cursor.close()
-                db.close()
-                return False
-            else:
-                print("12")
-                Spk =binascii.unhexlify(result1)#Spk是sender的公钥
-                if VerifySig(Spk,str(new_transaction['data']),signature):#验证签名是否符合要求
-                    print('13')
-                    sql4 = 'update pkadress set tx_nonce={} where adress="{}"'.format(result3+1, sender_adress)
-                    cursor.execute(sql4)
-                    db.commit()
+            msql = 'select amount from pkadress where adress="{}"'.format(sender_adress)
+            cursor(msql)
+            sender_amount = cursor.fetchone()[0]
+
+            if (sender_amount >= (Fees + amount)):
+                signature = new_transaction['signature']  # 先得到具体的签名值
+                recipient = new_transaction['data']['outputs']['recipient']
+                db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+                tx_nonce = new_transaction['data']['inputs']['tx_nonce']
+                cursor = db.cursor()
+                sql1 = 'select pk from pkadress where adress="{}"'.format(sender_adress)
+                sql2 = 'select adress from pkadress where adress="{}"'.format(recipient)
+                sql3 = 'select tx_nonce from pkadress where adress="{}"'.format(sender_adress)
+                cursor.execute(sql1)
+                result1 = cursor.fetchone()[0]
+                cursor.execute(sql2)
+                result2 = cursor.fetchone()[0]
+                cursor.execute(sql3)
+                result3 = cursor.fetchone()[0]
+                if (result1 is None) or (result2 is None) or (result3 is None) or (
+                        result3 + 1 != tx_nonce):  # 任何一个账户是不存在的
                     cursor.close()
                     db.close()
-                    return True
-                else:
-                    print('14')
                     return False
+                else:
+                    Spk = binascii.unhexlify(result1)  # Spk是sender的公钥
+                    if VerifySig(Spk, str(new_transaction['data']), signature):  # 验证签名是否符合要求
+                        sql4 = 'update pkadress set tx_nonce={} where adress="{}"'.format(result3 + 1, sender_adress)
+                        cursor.execute(sql4)
+                        db.commit()
+                        cursor.close()
+                        db.close()
+                        return True
+                    else:
+                        return False
+            else:
+                return False
 
 
 

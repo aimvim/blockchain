@@ -129,9 +129,6 @@ def TxPublish():
     value = request.get_json()#得到表单中的数据
     sk = binascii.unhexlify(value['private_key'])
     pk = GenPk(sk) # 生成公钥
-    print(pk)
-    print(binascii.hexlify(pk))
-    print(str(binascii.hexlify(pk).decode))
     #现在生成的sk与pk都是字节串格式
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor()
@@ -141,9 +138,6 @@ def TxPublish():
     result1 = cursor.fetchone()
     cursor.execute(sql1)
     result2 = cursor.fetchone()
-    print(result1)
-    print(result2)
-    print((result1 or result2)  == None)
     if (result1 or result2) == None:
         cursor.close()
         db.close()
