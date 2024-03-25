@@ -48,6 +48,8 @@
 <script setup lang="ts" name="Login">
 import {reactive, ref, toRef} from "vue"
 
+  // TODO: 补充注册逻辑
+
   const form = reactive({
     identity: "用户",
     username: "",

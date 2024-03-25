@@ -7,13 +7,8 @@
             <span style="margin-left: 13px; font-size: 28px">时间银行管理系统</span><br>
             <span style="font-size: 15px">Time Bank Management System</span>
           </div>
-
-<!--          <div class="menu">-->
-<!--            -->
-<!--          </div>-->
-<!--          -->
             <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
-                     class="menu" mode="horizontal" @select="handleSelect" :ellipsis="false"> <!-- 菜单激活回调 -->
+                     class="menu" mode="horizontal" @select="handleSelect1" :ellipsis="false"> <!-- 菜单激活回调 -->
               <el-menu-item index="1">任务中心</el-menu-item>
               <el-menu-item v-if="identity === '志愿者'" index="2">交易社区</el-menu-item>
               <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
@@ -30,16 +25,53 @@
       <el-container>
         <el-aside width="20.05vw">
           <div class="option">
-            <el-button class="openTask">发布任务</el-button>
-            <el-menu active-text-color="#303133" background-color="#fff"
+            <el-button class="openTask" @click="openTask = true">发布任务</el-button>
+            <el-menu active-text-color="#303133" background-color="#fff" @select="handleSelect2"
                      text-color="1b1c1f" class="taskMenu" :default-active="taskMenu">
-              <el-menu-item index="1">已发布</el-menu-item>
-              <el-menu-item index="2">进行中</el-menu-item>
-              <el-menu-item index="3">已完成</el-menu-item>
+              <el-menu-item index='1'>已发布</el-menu-item>
+              <el-menu-item index='2'>进行中</el-menu-item>
+              <el-menu-item index='3'>已完成</el-menu-item>
             </el-menu>
           </div>
         </el-aside>
-        <el-main>Main</el-main>
+        <el-main>
+          <div class="search">
+            <el-input v-model="search" style="width: 240px"
+                      :prefix-icon="Search" placeholder="请输入" clearable/>
+          </div>
+          <div style="display: flex">
+            <Detail :index="curIndex"/>
+            <Detail :index="curIndex"/>
+          </div>
+          <div style="display: flex">
+            <Detail :index="curIndex"/>
+            <Detail :index="curIndex"/>
+          </div>
+          <div style="text-align: center; display: flex">
+            <span style="margin-top: 2vh; margin-left: 20vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
+            <el-pagination class="pagination" :page-size="4" :pager-count="6" layout="prev, pager, next" :total="total"></el-pagination>
+          </div>
+          <el-dialog width="30%" v-model="openTask" title="发布任务" :close-on-click-modal="false" :onClose="reset">
+           <div style="margin-left: 80px">
+             <el-form :model="data.form2" label-width="100px" label-position="right" style="padding-right: 25px" ref="formRef" :rules="rules" status-icon>
+               <p style="margin-left: 45px"> 原成绩：{{ data.grade !== undefined ? data.grade : '' }} </p>
+               <el-row>
+                 <el-col :span="12">
+                   <el-form-item label="新成绩" prop="grade">
+                     <el-input v-model.number="data.form2.grade" autocomplete="off" />
+                   </el-form-item>
+                 </el-col>
+               </el-row>
+             </el-form>
+           </div>
+           <template #footer>
+             <span class="dialog-footer">
+               <el-button type="danger" @click="close2">取 消</el-button>
+               <el-button v-loading.fullscreen.lock="fullscreenLoading2" type="primary" @click="saveGrade">保 存</el-button>
+             </span>
+           </template>
+         </el-dialog>
+        </el-main>
       </el-container>
     </el-container>
   </div>
@@ -47,11 +79,31 @@
 
 <script setup lang="ts" name="Home">
   import {reactive, ref} from "vue"
+  import {Search} from "@element-plus/icons-vue";
+  import Detail from "./Detail.vue"
 
   const menu = ref("1")
   const identity = localStorage.getItem('identity')
-  const taskMenu = ref("1")
+  const taskMenu = ref('1')
+  const search = ref("")
+  const total = ref(6532)
+  const curIndex = ref('1')
+  const openTask = ref(false)
+  const formRef = ref()
+  const form = reactive({
+    name: "",
+    location: "",
+    time: "",
 
+    description: ""
+  })
+
+  const handleSelect2 = (index: string) => {
+    console.log(index)
+    curIndex.value = index
+  }
+
+  // TODO：查询，任务详情，发布任务，交互信息，分页
 
 </script>
 
@@ -59,7 +111,7 @@
   .title {
     width: 15vw;
     margin: 10px 25px 0;
-    background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 50%, rgb(64, 185, 220));
+    background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -155,6 +207,16 @@
   :deep(.taskMenu .el-menu-item:last-child) {
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
+  }
+
+  .search {
+    margin-left: 52vw;
+    margin-top: 3vh;
+  }
+
+  .pagination {
+    margin-top: 2vh;
+    margin-left: 1vw;
   }
 
 </style>
