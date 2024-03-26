@@ -25,8 +25,8 @@ create table register_code(
 );
 
 create table mission_published(
-    id int primary key,
-    name varchar(64),
+    id int,
+    name varchar(64) primary key,
     area varchar(64),
     begintime datetime,
     endtime datetime,
@@ -35,8 +35,8 @@ create table mission_published(
 );
 
 create table mission_finished(
-    id int primary key,
-    name varchar(64),
+    id int,
+    name varchar(64) primary key,
     area varchar(64),
     begintime datetime,
     endtime datetime,

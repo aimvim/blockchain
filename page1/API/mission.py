@@ -66,5 +66,34 @@ def select():
     db.close()
     return result,200
 
+@app.route("/Publish/Mission",methods=['GET'])
+def publishMission():
+    '''
+    得到的文件格式为
+    {
+    "name":---,
+    "area":---,
+    "begintime":---,
+    "endtime":---,
+    "mcharacter":---,
+    "details":---
+    }
+    '''
+    value = request.get_json()
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor()
+    cursor.execute("select count(*) from mission_published")
+    result = cursor.fetchone()[0]
+    sql = 'insert into mission_published (`id`, `name`, `area`, `begintime`, `endtime`, `mcharacter`, `details`) value ({}, "{}", "{}", "{}", "{}", "{}", "{}");'.format((result+1), value['name'], value['area'], value['begintime'], value['endtime'], value['mcharacter'], value['details'])
+    try:
+        cursor.execute(sql)
+        db.commit()
+        cursor.close()
+        db.close()
+        return jsonify({"message": "Mission published successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run()
