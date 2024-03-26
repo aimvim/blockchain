@@ -12,16 +12,24 @@ create table userinfo(
 
 create table admininfo(
     id varchar(8) not null primary key,
-    password char(64) not null
+    password char(64) not null,
+    register_code varchar(64) not null,
+    invite_code varchar(64),
+    status int check(status in(0,1))
 );
 
 create table volunteerinfo(
     id varchar(8) not null primary key,
-    password char(64) not null
+    password char(64) not null,
+    register_code varchar(64) not null,
+    proof varchar(32) not null,
+    checked varchar(3) check(checked in ("yes","not"))
+    --proof目前按照一个url处理
 );
 
 create table register_code(
-    code varchar(64)
+    code varchar(64),
+    company varchar(32) not null
 );
 
 create table mission_published(
