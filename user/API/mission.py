@@ -1,7 +1,7 @@
 import json
 
 from flask import Flask, request, jsonify
-from page1.functions.func import *
+from user.functions.func import *
 import pymysql
 app = Flask(__name__)
 
