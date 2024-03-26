@@ -23,3 +23,23 @@ create table volunteerinfo(
 create table register_code(
     code varchar(64)
 );
+
+create table mission_published(
+    id int primary key,
+    name varchar(64),
+    area varchar(64),
+    begintime datetime,
+    endtime datetime,
+    mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
+    details varchar(1000)
+);
+
+create table mission_finished(
+    id int primary key,
+    name varchar(64),
+    area varchar(64),
+    begintime datetime,
+    endtime datetime,
+    mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
+    details varchar(1000)
+);
