@@ -76,7 +76,7 @@ def admin_register():
             return jsonify(True),200
 
 #volunteer的登录注册是最简易的，不需要任何的审核
-@app.route("/user_register",methods=['POST'])
+@app.route("/user_register", methods=['POST'])
 def user_register():
     '''
     输入的json格式为
@@ -89,29 +89,35 @@ def user_register():
     '''
     VolunteerInfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, charset="utf8", db="blockchain")
     except Exception as e:
-        return e #如果数据库连接失败则返回错误原因
-    cursor = db.cursor(cursor = pymysql.cursors.DictCursor)
-    #密码存入数据库中采用密文的形式
-    CryptPasswd = hashlib.sha256(VolunteerInfo["passwd"].encode("utf8")).hexdigest()#哈希函数加密使用utf8编码形式
+        return str(e), 400  # 如果数据库连接失败则返回错误原因
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    # 密码存入数据库中采用密文的形式
+    CryptPasswd = hashlib.sha256(VolunteerInfo["passwd"].encode("utf8")).hexdigest()  # 哈希函数加密使用utf8编码形式
     sql = "select code from register_code"
     cursor.execute(sql)
     result = cursor.fetchall()
     code = {'code': "{}".format(VolunteerInfo['register_code'])}
     if code not in result:
-        return "Wrong Register Code!",400
+        return "Wrong Register Code!", 400
     else:
-        sql = 'insert into userinfo value("{}","{}","{}","{}","not");'.format(VolunteerInfo['id'],CryptPasswd,VolunteerInfo['register_code'],VolunteerInfo['proof'])
+        # 这里，每个人应该配备自己私人独立的表单(这里就已经创建好了私人的表单)
+        sql = 'CREATE TABLE mission_published_{} (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64), area VARCHAR(64), begintime DATETIME, endtime DATETIME, mcharacter VARCHAR(64) CHECK(mcharacter IN ("ABCD","EFGH","IJKL","MNOP")), details VARCHAR(1000), status VARCHAR(16) CHECK(status IN ("not finished","finished")));'.format(VolunteerInfo['id'])
+        print(sql)
+        cursor.execute(sql)
+        db.commit()
+        sql = 'INSERT INTO userinfo VALUE ("{}","{}","{}","{}","not");'.format(VolunteerInfo['id'], CryptPasswd, VolunteerInfo['register_code'], VolunteerInfo['proof'])
         # 将注册信息加入到数据库中，或者返回id已被使用的错误
         try:
             cursor.execute(sql)
             db.commit()
             cursor.close()
             db.close()
-            return "注册成功",200
+            return "注册成功", 200
         except Exception as e:
-            return str(e),400
+            return str(e), 400
+
 
 if __name__ == "__main__":
     app.run()

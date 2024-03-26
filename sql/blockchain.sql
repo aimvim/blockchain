@@ -39,7 +39,8 @@ create table mission_published(
     begintime datetime,
     endtime datetime,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
-    details varchar(1000)
+    details varchar(1000),
+    status varchar(16) check(status in ("not finished","finished"))
 );
 
 create table mission_finished(
