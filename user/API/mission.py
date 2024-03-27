@@ -25,7 +25,7 @@ def PM():
     result = cursor.fetchall()
     cursor.close()
     db.close()
-    return result,200
+    return jsonify(result),200
 
 @app.route("/FinishedMission",methods=['GET'])
 def FM():
@@ -45,7 +45,7 @@ def FM():
     result = cursor.fetchall()
     cursor.close()
     db.close()
-    return result,200
+    return jsonify(result),200
 
 @app.route("/select",methods=['GET'])
 def select():
@@ -64,7 +64,7 @@ def select():
     print(result)
     cursor.close()
     db.close()
-    return result,200
+    return jsonify(result),200
 
 @app.route("/Publish/Mission",methods=['GET'])
 def publishMission():
