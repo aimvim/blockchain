@@ -5,7 +5,7 @@ create table pkadress(
     amount double default 0
 );
 
-create table userinfo(
+create table volunteerinfo(
     id varchar(8) not null primary key,
     password char(64) not null
 );
@@ -18,7 +18,7 @@ create table admininfo(
     status int check(status in(0,1))
 );
 
-create table volunteerinfo(
+create table userinfo(
     id varchar(8) not null primary key,
     password char(64) not null,
     register_code varchar(64) not null,

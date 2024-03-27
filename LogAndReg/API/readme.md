@@ -5,6 +5,7 @@ UserLogin   VolunteerLogin      AdmninLogin
 {"id":"id",
 "password":"password"
 ```
+user登录的时候返回{"id":,"company":}
 返回的都是表示成功的信息，没啥作用，直接看状态码吧(成功是200，失败是400，下面的也是一样)
 
 **Register**的API

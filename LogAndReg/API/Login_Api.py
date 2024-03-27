@@ -1,6 +1,6 @@
 import pymysql
 import hashlib
-from flask import Flask,request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 #注册的时候应该考虑一下身份验证的问题
@@ -8,17 +8,30 @@ app = Flask(__name__)
 @app.route("/UserLogin",methods=['POST'])
 def userlogin():
     db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
-    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    cursor = db.cursor()
     userinfo = request.get_json()
-    sql = 'select * from userinfo where id="{}"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
+    sql = 'select password from userinfo where id="{}"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
     cursor.execute(sql)
-    result = cursor.fetchone()
+    result = cursor.fetchone()[0]
+    sql = 'select checked from userinfo where id="{}"'.format(userinfo['id'])
+    cursor.execute(sql)
+    state_code =cursor.fetchone()[0]
     if result == None:
         return "Id not exist",400
+    elif state_code == "not":
+        return "Id not exist", 400
     else:
         CryptPassword = hashlib.sha256(userinfo['password'].encode("utf8")).hexdigest()
-        if CryptPassword == result['password']:
-            return "True!",200
+        if CryptPassword == result:
+            sql = 'select register_code from userinfo where id ="{}"'.format(userinfo['id'])
+            cursor.execute(sql)
+            register_code = cursor.fetchone()[0]
+            sql = 'select company from register_code where code = "{}"'.format(register_code)
+            cursor.execute(sql)
+            company = cursor.fetchone()[0]
+            msg={"id":userinfo['id'],
+                 "company":company}
+            return jsonify(msg),200
         else:
             return "Id or password is wrong!",400
 
