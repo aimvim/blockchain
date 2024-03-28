@@ -33,22 +33,12 @@ create table register_code(
 );
 
 create table mission_published(
-    id int,
-    name varchar(64) primary key,
+    id int auto_increment primary key,
+    name varchar(64),
     area varchar(64),
     begintime datetime,
     endtime datetime,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
     details varchar(1000),
     status varchar(16) check(status in ("not finished","finished"))
-);
-
-create table mission_finished(
-    id int,
-    name varchar(64) primary key,
-    area varchar(64),
-    begintime datetime,
-    endtime datetime,
-    mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
-    details varchar(1000)
 );
