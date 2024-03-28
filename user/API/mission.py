@@ -24,7 +24,7 @@ def PM():
     page = data['page']
     db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published_{} limit {},4;'.format(data['id'],4*(page-1))
+    sql = 'select * from mission_published where uploader ="{}" limit {},4;'.format(data['id'],4*(page-1))
     cursor.execute(sql)
     result = cursor.fetchall()
     cursor.close()
@@ -46,7 +46,7 @@ def FM():
     page = data['page']
     db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_finished_{} where status="finished" limit {},4;'.format(data['id'],4*(page-1))
+    sql = 'select * from mission_published where status="finished" and uploader = "{}" limit {},4;'.format(4*(page-1),data['id'])
     cursor.execute(sql)
     result = cursor.fetchall()
     cursor.close()
@@ -68,7 +68,7 @@ def select():
         # 尝试连接数据库
         db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
-        sql = 'SELECT * FROM mission_published_{} WHERE name="{}";'.format(data['id'], input_value)
+        sql = 'SELECT * FROM mission_published WHERE name="{}" and uploader="{}";'.format(input_value,data['id'])
         # 尝试执行SQL查询
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -99,15 +99,9 @@ def publishMission():
     value = request.get_json()
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor()
-    cursor.execute("select count(*) from mission_published")
-    result = cursor.fetchone()[0]
-    sql = 'insert into mission_published_{}( `name`, `area`, `begintime`, `endtime`, `mcharacter`, `details`,`status`) value ("{}", "{}", "{}", "{}", "{}", "{}","not finished");'.format(value['id'],value['name'], value['area'], value['begintime'], value['endtime'], value['mcharacter'], value['details'])
-    sql1 = 'insert into mission_published( `name`, `area`, `begintime`, `endtime`, `mcharacter`, `details`,`status`) value ( "{}", "{}", "{}", "{}", "{}", "{}","not finished");'.format( value['name'], value['area'], value['begintime'], value['endtime'], value['mcharacter'], value['details'])
-    #sql将数据存入自己的表单，sql1将数据存总表单
+    sql = 'insert into mission_published( `name`, `area`, `begintime`, `endtime`, `mcharacter`, `details`,`status`,`uploader`) value ("{}", "{}", "{}", "{}", "{}", "{}","not finished","{}");'.format( value['name'], value['area'], value['begintime'], value['endtime'], value['mcharacter'], value['details'],value['id'])
     try:
         cursor.execute(sql)
-        db.commit()
-        cursor.execute(sql1)
         db.commit()
         cursor.close()
         db.close()

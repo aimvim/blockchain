@@ -40,5 +40,7 @@ create table mission_published(
     endtime datetime,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
     details varchar(1000),
-    status varchar(16) check(status in ("not finished","finished"))
+    status varchar(16) check(status in ("not finished","finished")),
+    checked varchar(3) check(checked in ("not","yes")) default "not",
+    uploader varchar(8) not null
 );

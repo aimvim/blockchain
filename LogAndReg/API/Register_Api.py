@@ -103,10 +103,6 @@ def user_register():
         return "Wrong Register Code!", 400
     else:
         # 这里，每个人应该配备自己私人独立的表单(这里就已经创建好了私人的表单)
-        sql = 'CREATE TABLE mission_published_{} (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64), area VARCHAR(64), begintime DATETIME, endtime DATETIME, mcharacter VARCHAR(64) CHECK(mcharacter IN ("ABCD","EFGH","IJKL","MNOP")), details VARCHAR(1000), status VARCHAR(16) CHECK(status IN ("not finished","finished")));'.format(VolunteerInfo['id'])
-        print(sql)
-        cursor.execute(sql)
-        db.commit()
         sql = 'INSERT INTO userinfo VALUE ("{}","{}","{}","{}","not");'.format(VolunteerInfo['id'], CryptPasswd, VolunteerInfo['register_code'], VolunteerInfo['proof'])
         # 将注册信息加入到数据库中，或者返回id已被使用的错误
         try:
