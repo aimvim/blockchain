@@ -108,5 +108,95 @@ def SNCM():
     except Exception as e:
         return jsonify(e),500
 
+#这个API的作用是返回未审核的账户
+@app.route("/NtUser")
+def UN():
+    ''''
+    输入json
+    {
+    "page":page
+    }'''
+    page=request.get_json()['page']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = "select * from userinfo where checked='not' limit {},6".format(6*page-6)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.close()
+        db.close()
+        return jsonify(result),200
+    except Exception as e:
+        return jsonify(e),500
+
+@app.route("/CtUser")
+def CN():
+    ''''
+    输入json
+    {
+    "page":page
+    }'''
+    page=request.get_json()['page']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = "select * from userinfo where checked='yes' limit {},6".format(6*page-6)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.close()
+        db.close()
+        return jsonify(result),200
+    except Exception as e:
+        return jsonify(e),500
+
+@app.route("/SelectNtUser")
+def SUN():
+    ''''
+    输入json
+    {
+    "input":page
+    }'''
+    input=request.get_json()['input']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = "select * from userinfo where checked='not' and id='{}'".format(input)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.close()
+        db.close()
+        if not result:
+            return jsonify({"error": "No results found"}), 500
+        else:
+            return jsonify(result), 200
+    except Exception as e:
+        return jsonify(e),500
+
+@app.route("/SelectCtUser")
+def SCN():
+    ''''
+    输入json
+    {
+    "input":page
+    }'''
+    input=request.get_json()['input']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    sql = "select * from userinfo where checked='yes' and id='{}'".format(input)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.close()
+        db.close()
+        if not result:
+            return jsonify({"error": "No results found"}), 500
+        else:
+            return jsonify(result), 200
+    except Exception as e:
+        return jsonify(e),500
+
+
+#这个API的作用是返回已审核的账户
+
 if __name__=="__main__":
     app.run()
