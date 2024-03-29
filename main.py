@@ -1,12 +1,8 @@
-import pymysql
+sum = 0
+for i in range(0,123):
+    for j in range(0,122):
+        for x in range(0,124):
+            for y in range(0,114):
+                sum = sum + i + j +x +y
 
-try:
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, charset="utf8", db="blockchain")
-except Exception as e:
-    print(str(e))
-cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-# 首先判断注册码是否正确
-sql = "select code from register_code"
-cursor.execute(sql)
-result = cursor.fetchall()
-print(result)
+print(sum)

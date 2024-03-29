@@ -38,9 +38,12 @@ create table mission_published(
     area varchar(64),
     begintime datetime,
     endtime datetime,
+    activitytime float not null,
+    award double not null,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
     details varchar(1000),
     status varchar(16) check(status in ("not finished","finished")),
     checked varchar(3) check(checked in ("not","yes")) default "not",
-    uploader varchar(8) not null
+    uploader varchar(8) not null,
+    uploader_company varchar(32) not null
 );

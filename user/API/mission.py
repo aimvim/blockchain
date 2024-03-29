@@ -31,27 +31,31 @@ def PM():
     db.close()
     return jsonify(result),200#返回消息的全部信息
 
-@app.route("/FinishedMission",methods=['GET'])
+@app.route("/FinishedMission", methods=['GET'])
 def FM():
-    #针对传入信息
+    # 针对传入信息
     '''
     {
     "id":id,
     "page":123
     }
     '''
-    #对具体返回消息的要求可以进行更改
-    #完成对分页的要求
+    # 对具体返回消息的要求可以进行更改
+    # 完成对分页的要求
     data = request.get_json()
     page = data['page']
-    db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where status="finished" and uploader = "{}" limit {},4;'.format(4*(page-1),data['id'])
-    cursor.execute(sql)
-    result = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return jsonify(result),200
+    sql1  = "select * from mission_published where status = 'finished' and uploader ='{}' limit {},4".format(data['id'],4*page-4)
+    try:
+        cursor.execute(sql1)
+        result = cursor.fetchall()
+        cursor.close()
+        db.close()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify(str(e)), 500
+
 
 @app.route("/select", methods=['GET'])
 def select():
@@ -92,6 +96,8 @@ def publishMission():
     "area":---,
     "begintime":---,
     "endtime":---,
+    "activitytime":---,
+    "award":---,
     "mcharacter":---,
     "details":---
     }
@@ -99,7 +105,20 @@ def publishMission():
     value = request.get_json()
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor()
-    sql = 'insert into mission_published( `name`, `area`, `begintime`, `endtime`, `mcharacter`, `details`,`status`,`uploader`) value ("{}", "{}", "{}", "{}", "{}", "{}","not finished","{}");'.format( value['name'], value['area'], value['begintime'], value['endtime'], value['mcharacter'], value['details'],value['id'])
+    sql = 'select register_code from userinfo where id ="{}"'.format(value['id'])
+    try:
+        cursor.execute(sql)
+    except Exception as e:
+        return jsonify(e),500
+    result = cursor.fetchone()[0]
+    try:
+        sql = 'select company from register_code where code = "{}"'.format(result)
+        cursor.execute(sql)
+    except Exception as e:
+        return jsonify(e),200
+    company = cursor.fetchone()[0]
+    print(company)
+    sql = 'insert into mission_published( `name`, `area`, `begintime`, `endtime`, `mcharacter`, `details`,`status`,`uploader`,`activitytime`,`award`,`uploader_company`) value ("{}", "{}", "{}", "{}", "{}", "{}","not finished","{}","{}","{}","{}");'.format( value['name'], value['area'], value['begintime'], value['endtime'], value['mcharacter'], value['details'],value['id'],value['activitytime'],value['award'],company)
     try:
         cursor.execute(sql)
         db.commit()
