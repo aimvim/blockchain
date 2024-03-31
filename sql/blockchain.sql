@@ -42,7 +42,7 @@ create table mission_published(
     award double not null,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
     details varchar(1000),
-    status varchar(16) check(status in ("not finished","finished")),
+    status varchar(16) check(status in ("not finished","finished")) default "not finished",
     checked varchar(3) check(checked in ("not","yes")) default "not",
     uploader varchar(8) not null,
     uploader_company varchar(32) not null

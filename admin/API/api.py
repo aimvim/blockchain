@@ -15,7 +15,7 @@ def NotCheckedMission():
     page = request.get_json()['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where checked = "not" limit {},4;'.format(4 * (page - 1))
+    sql = 'select * from mission_published where checked = "not" and status="not finished" limit {},4;'.format(4 * (page - 1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -35,9 +35,9 @@ def CheckedMission():
     }
     '''
     page = request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="test")
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where checked = "yes" limit {},4;'.format(4 * (page - 1))
+    sql = 'select * from mission_published where checked = "yes" and status="not finished" limit {},4;'.format(4 * (page - 1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -75,7 +75,7 @@ def SCM():
     input = request.get_json()['input']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where name="{}" and checked="yes"'.format(input)
+    sql = 'select * from mission_published where name="{}" and checked="yes" and status="not finished"'.format(input)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -97,7 +97,7 @@ def SNCM():
     input = request.get_json()['input']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where name="{}" and checked="not"'.format(input)
+    sql = 'select * from mission_published where name="{}" and checked="not" and status="not finished"'.format(input)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
