@@ -2,7 +2,8 @@ create table pkadress(
     pk varchar(150) not null primary key,
     adress varchar(40) not null,
     tx_nonce int not null default 0,
-    amount double default 0
+    amount double default 0,
+    id varchar(8) not null
 );
 
 create table volunteerinfo(
@@ -34,7 +35,7 @@ create table register_code(
 
 create table mission_published(
     id int auto_increment primary key,
-    name varchar(64),
+  are
     area varchar(64),
     begintime datetime,
     endtime datetime,

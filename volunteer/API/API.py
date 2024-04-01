@@ -25,5 +25,8 @@ def TMC():
     except Exception as e:
         return jsonify(e),500
 
+
+#将任务信息加入到自己的接取中
+
 if __name__=="__main__":
     app.run()
