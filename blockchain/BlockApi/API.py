@@ -97,13 +97,18 @@ def longchain():
 def TxRoot():#使用方法——输入交易返回最终root值
     tx = request.get_json()
     return blockchain.MerkleRoot(tx)
-
 @app.route("/AcCreate",methods=['GET'])
 def AcCreate():
+    '''
+    传入json
+    {
+    "id":id --传入用户名
+    '''
+    id = request.get_json()['id']
     private_key = GenSk()
     publick_key = GenPk(private_key)
     try:
-        adress = AdCre(private_key)
+        adress = AdCre(private_key,id)
     except Exception as e:
         return e
     response = {

@@ -35,7 +35,7 @@ create table register_code(
 
 create table mission_published(
     id int auto_increment primary key,
-  are
+    name varchar(64) not null,
     area varchar(64),
     begintime datetime,
     endtime datetime,
@@ -47,4 +47,13 @@ create table mission_published(
     checked varchar(3) check(checked in ("not","yes")) default "not",
     uploader varchar(8) not null,
     uploader_company varchar(32) not null
+);
+
+create table proof_table(
+    name varchar(64),
+    area varchar(64),
+    proof varchar(64),
+    constraint fkk foreign key(name,area)
+    references mission_published(name,area)
+    on update cascade
 );

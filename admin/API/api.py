@@ -196,7 +196,15 @@ def SCN():
         return jsonify(e),500
 
 
-#这个API的作用是返回已审核的账户
+#这个api的作用是返回提交到管理员处的审核
+@app.route("/SubmitMission",methods=['GET'])
+def SM():
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor()
+    sql = "select * from "
+
+
+
 
 if __name__=="__main__":
     app.run()

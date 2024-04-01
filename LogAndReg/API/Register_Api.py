@@ -28,15 +28,15 @@ def volunteer_register():
     award double not null,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
     details varchar(1000),
-    status varchar(16) check(status in ("not finished","finished")) default "not finished",
+    status varchar(16) default "not finished",
     checked varchar(3) check(checked in ("not","yes")) default "not",
     uploader varchar(8) not null,
     uploader_company varchar(32) not null,
-    constraint Fk foreign key(name,area,status)
+    constraint Fk foreign key(name,area,status)  # 修改这里，移除 status 列
     references mission_published(name,area,status)
-    on update cascade记得加索引
+    on update cascade
 );
-    '''.format(UserInfo['id'])
+    '''.format(UserInfo['id'])#建立个人私人的表
     try:
         cursor.execute(sql)
         db.commit()
@@ -47,6 +47,8 @@ def volunteer_register():
         return "注册成功",200
     except Exception as e:
         return str(e),400
+
+
 
 #admin的注册需要邀请码和注册码
 

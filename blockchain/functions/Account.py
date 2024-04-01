@@ -22,7 +22,7 @@ def GenPk(PrivateKey):  # 基于私钥生成公钥，然后生成地址？这里
 
 
 # 公钥用于签名的验证，地址用来实现转账
-def AdCre(private_key):  # 生成账户地址，并将公钥与地址存入数据库当中
+def AdCre(private_key,id):  # 生成账户地址，并将公钥与地址存入数据库当中
     public_key = GenPk(private_key)
     prefix_and_pubkey = b"\x04" + public_key
     intermediate = hashlib.sha256(prefix_and_pubkey).digest()
@@ -37,7 +37,7 @@ def AdCre(private_key):  # 生成账户地址，并将公钥与地址存入数�
     address = base58.b58encode(pre_address)
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor()
-    sql = 'insert into pkadress(pk,adress) value("{}","{}")'.format(binascii.hexlify(public_key).decode(), address.decode())
+    sql = 'insert into pkadress(pk,adress,id) value("{}","{}","{}")'.format(binascii.hexlify(public_key).decode(), address.decode(),id)
     print(len(binascii.hexlify(public_key)))
     print(len(address.decode()))
     print(type(address.decode()))
