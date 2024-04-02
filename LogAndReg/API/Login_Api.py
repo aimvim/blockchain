@@ -5,7 +5,7 @@ from flask import Flask,request
 app = Flask(__name__)
 #注册的时候应该考虑一下身份验证的问题
 #管理员，志愿者，用户应该使用不同的数据库
-@app.route("/UserLogin",methods=['GET'])
+@app.route("/UserLogin",methods=['POST'])
 def userlogin():
     db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
@@ -23,7 +23,7 @@ def userlogin():
             return "Id or password is wrong!"
 
 
-@app.route("/AdminLogin",methods=['Get'])
+@app.route("/AdminLogin",methods=['POST'])
 def adminlogin():
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)

@@ -33,7 +33,27 @@
           <div style="display: flex">
             <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="20px"><Link /></el-icon>
             <el-form-item prop="invitationCode">
-              <el-input style="width: 250px" v-model="form.invitationCode" :placeholder="codePlaceholder" show-password />
+              <el-input style="width: 250px" v-model="form.invitationCode" :placeholder="codePlaceholder" />
+            </el-form-item>
+          </div>
+          <div style="display: flex" v-if="form.identity === '用户'">
+            <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="19px"><DocumentChecked /></el-icon>
+            <el-upload class="upload" drag action="awa" multiple :before-upload="beforeUpload">
+              <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+              <div class="el-upload__text">
+                将图片拖拽至这里或 <em>手动上传</em>
+              </div>
+              <template #tip>
+                <div class="el-upload__tip">
+                  上传格式：jpg/png
+                </div>
+              </template>
+            </el-upload>
+          </div>
+          <div style="display: flex" v-if="form.identity === '管理员'">
+            <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="20px"><Message /></el-icon>
+            <el-form-item prop="registrationCode">
+              <el-input style="width: 250px" v-model="form.registrationCode" placeholder="注册码" />
             </el-form-item>
           </div>
           <el-link style="margin-top: 20px" href="/login">返回</el-link>
@@ -47,6 +67,7 @@
 
 <script setup lang="ts" name="Login">
 import {reactive, ref, toRef} from "vue"
+import type {UploadProps} from "element-plus";
 
   // TODO: 补充注册逻辑
 
@@ -55,7 +76,8 @@ import {reactive, ref, toRef} from "vue"
     username: "",
     password: "",
     confirmPassword: "",
-    invitationCode: ""
+    invitationCode: "",
+    registrationCode: ""
   })
   const codePlaceholder = ref(form.identity === '管理员' ? "邀请码（必填）" : "邀请码（选填）")
   const formRef = ref()
@@ -93,6 +115,9 @@ import {reactive, ref, toRef} from "vue"
     ],
     invitationCode: [
       {validator: codeValidator, trigger: "blur"}
+    ],
+    registrationCode: [
+      {required: true, message: "请输入注册码", trigger: "blur"}
     ]
   })
 
@@ -103,11 +128,20 @@ import {reactive, ref, toRef} from "vue"
   window.addEventListener('load', () => {
     const div = document.querySelector('.upper');
     const div2 = document.querySelector('.login-box');
-    const div3 = document.querySelector('.optional');
     div.classList.add('loaded');
     div2.classList.add('loaded');
-    div3.classList.add('loaded');
   });
+
+  const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
+    const allowedFormats = ['image/jpeg', 'image/png'];
+    if (!allowedFormats.includes(rawFile.type)) {
+      // TODO: 试验图片格式
+      ElMessage.error('Avatar picture must be in JPG or PNG format!');
+      return false;
+    }
+
+    return true;
+  }
 
 </script>
 
@@ -134,13 +168,13 @@ import {reactive, ref, toRef} from "vue"
   }
 
   .upper.loaded {
-    top: 20vh;
+    top: 12vh;
     color: rgba(255, 255, 255, 1);
   }
 
   .login-box {
     border-radius: 15px;
-    margin: 24.63vh 36.72vw 40.65vh;
+    margin: 16.63vh 36.72vw 40.65vh;
     box-shadow: 0 10px 20px 5px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transition: opacity 1.5s 0s ease-in-out;
@@ -226,6 +260,31 @@ import {reactive, ref, toRef} from "vue"
 
   .el-button:active {
     background-color: rgba(255, 255, 255, 0);
+  }
+
+  /deep/ .el-upload .el-upload-dragger {
+    width: 13.1vw;
+    height: 11vh;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .el-icon--upload {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .el-upload__text {
+    margin: 0;
+    padding: 0;
+    color: white;
+    font-size: 12px;
+  }
+
+  .el-upload__tip {
+    color: white;
+    float: left;
   }
 
 </style>

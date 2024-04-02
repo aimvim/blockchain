@@ -2,7 +2,7 @@
   <div class="back">
     <div class="upper">Login</div>
     <div class="login-box">
-      <el-radio-group v-model="identity" fill="rgba(255, 255, 255, 0.1)">
+      <el-radio-group v-model="form.identity" fill="rgba(255, 255, 255, 0.1)">
         <el-radio-button label="用户" value="用户" />
         <div class="v-separate"></div>
         <el-radio-button label="志愿者" value="志愿者" />
@@ -36,14 +36,13 @@
 <script setup lang="ts" name="Login">
   import {reactive, ref} from "vue"
   import router from "@/router"
-
-  // TODO: 补充登录逻辑
+  import axios from "axios";
 
   const formRef = ref()
-  const identity = ref("用户")
   const form = reactive({
     username: "",
-    password: ""
+    password: "",
+    identity: "用户"
   })
 
   const rules = reactive({
@@ -67,12 +66,26 @@
   function login() {
     formRef.value.validate((value) => {
       if (value) {
-        localStorage.setItem('identity', identity.value)
-        router.push('/home')
+        if (form.identity === '管理员') {
+          axios.post('/AdminLogin', form).then(res => {
+            if (res.data.code === 200) {
+              localStorage.setItem('identity', form.identity)
+              localStorage.setItem('username', form.username)
+              router.push('/home')
+            }
+          })
+        } else {
+          axios.post('/login', form).then(res => {
+            if (res.data.code === 200) {
+              localStorage.setItem('identity', form.identity)
+              localStorage.setItem('username', form.username)
+              router.push('/home')
+            }
+          })
+        }
       }
     })
   }
-
 </script>
 
 <!--suppress CssInvalidPseudoSelector -->
