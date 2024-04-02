@@ -15,7 +15,7 @@ def NotCheckedMission():
     page = request.get_json()['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where checked = "not" limit {},4;'.format(4 * (page - 1))
+    sql = 'select * from mission_published where checked = "not" and status="not finished" limit {},4;'.format(4 * (page - 1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -35,9 +35,9 @@ def CheckedMission():
     }
     '''
     page = request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="test")
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where checked = "yes" limit {},4;'.format(4 * (page - 1))
+    sql = 'select * from mission_published where checked = "yes" and status="not finished" limit {},4;'.format(4 * (page - 1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -75,7 +75,7 @@ def SCM():
     input = request.get_json()['input']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where name="{}" and checked="yes"'.format(input)
+    sql = 'select * from mission_published where name="{}" and checked="yes" and status="not finished"'.format(input)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -97,7 +97,7 @@ def SNCM():
     input = request.get_json()['input']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where name="{}" and checked="not"'.format(input)
+    sql = 'select * from mission_published where name="{}" and checked="not" and status="not finished"'.format(input)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
@@ -196,7 +196,62 @@ def SCN():
         return jsonify(e),500
 
 
-#这个API的作用是返回已审核的账户
+#这个api的作用是返回提交到管理员处的审核
+@app.route("/SubmitMission",methods=['GET'])
+def SM():
+    ''''
+    传入json
+    {
+    "name":name,
+    "area":area
+    }
+    '''
+    data = request.get_json()
+    name = data['name']
+    area = data['area']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = "select proof from proof_table where name='{}' and area = '{}'".format(name,area)
+    try:
+        cursor.execute(sql)
+        proof = cursor.fetchall()
+        cursor.close()
+        db.close()
+        return jsonify(proof),200
+    except Exception as e:
+        return jsonify(e),500
+
+#当管理员允许时
+@app.route("/AdminPassMission",methods=['GET'])
+def APM():
+    ''''
+    {
+    "name":name,
+    "area":area
+    }
+    '''
+    data = request.get_json()
+    name = data['name']
+    area = data['area']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="test")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = "update mission_published set status='finished' where name='{}' and area='{}'".format(name,area)
+    try:
+        cursor.execute(sql)
+        db.commit()
+        cursor.close()
+        db.close()
+        return jsonify("Success!"), 200
+    except Exception as e:
+        return jsonify(e), 500
+
+
+
+
+
+
+
+
 
 if __name__=="__main__":
     app.run()

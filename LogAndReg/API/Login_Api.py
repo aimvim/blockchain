@@ -54,6 +54,9 @@ def adminlogin():
         else:
             return "Id or password is wrong!",400
 
+
+
+#volunteer登录成功后，会返回他的账户的信息
 @app.route("/VolunteerLogin",methods=['POST'])
 def volunteerlogin():
     '''
@@ -66,17 +69,27 @@ def volunteerlogin():
     db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     userinfo = request.get_json()
-    sql = 'select * from volunteerinfo where id="{}" and checked="yes"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
-    cursor.execute(sql)
-    result = cursor.fetchone()
+    sql = 'select * from volunteerinfo where id="{}"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchone()
+    except Exception as e:
+        return jsonify(e),500
     if result == None:
         return "Id not exist",400
     else:
         CryptPassword = hashlib.sha256(userinfo['password'].encode("utf8")).hexdigest()
         if CryptPassword == result['password']:
-            return "True!",200
+            #登录成功后返回信息
+            sql = "select * from pkadress where id='{}'".format(userinfo['id'])
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            db.close() # 关闭数据库连接
+            return jsonify(result),200
         else:
+            db.close() # 关闭数据库连接
             return "Id or password is wrong!",400
+
 
 
 if __name__ == "__main__":

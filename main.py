@@ -1,8 +1,9 @@
-sum = 0
-for i in range(0,123):
-    for j in range(0,122):
-        for x in range(0,124):
-            for y in range(0,114):
-                sum = sum + i + j +x +y
+import pymysql
 
-print(sum)
+db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+cursor = db.cursor(pymysql.cursors.DictCursor)
+cursor.execute('select * from transaction')
+result = cursor.fetchall()
+for x in result:
+    print(x['amount'])
+    print("avbd")

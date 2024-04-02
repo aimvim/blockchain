@@ -2,7 +2,8 @@ create table pkadress(
     pk varchar(150) not null primary key,
     adress varchar(40) not null,
     tx_nonce int not null default 0,
-    amount double default 0
+    amount double default 0,
+    id varchar(8) not null
 );
 
 create table volunteerinfo(
@@ -34,7 +35,7 @@ create table register_code(
 
 create table mission_published(
     id int auto_increment primary key,
-    name varchar(64),
+    name varchar(64) not null,
     area varchar(64),
     begintime datetime,
     endtime datetime,
@@ -42,8 +43,27 @@ create table mission_published(
     award double not null,
     mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
     details varchar(1000),
-    status varchar(16) check(status in ("not finished","finished")),
+    status varchar(16) check(status in ("not finished","finished")) default "not finished",
     checked varchar(3) check(checked in ("not","yes")) default "not",
     uploader varchar(8) not null,
     uploader_company varchar(32) not null
+);
+
+create table proof_table(
+    name varchar(64),
+    area varchar(64),
+    proof varchar(64),
+    constraint fkk foreign key(name,area)
+    references mission_published(name,area)
+    on update cascade
+);
+
+create table transaction(
+    signature char(128),
+    senderadress varchar(64) not null,
+    amount double,
+    fees double,
+    recipient varchar(64),
+    onchain varchar(3) check(onchain in ("yes","not")) default "not",
+    miner varchar(5102)
 );

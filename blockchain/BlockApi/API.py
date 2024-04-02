@@ -19,6 +19,7 @@ print(blockchain.hash(blockchain.blockchain[0]))
 ########################################
 @app.route("/AddNewBlock", methods=["POST"])
 def AddNewBlock():
+    #这里传入的block是一条区块链
     block = request.get_json()
     # 还应该检查block的格式
     if blockchain.TheBlokCheck(block):
@@ -40,6 +41,8 @@ def AddNewBlock():
                 "Fees": 0
             }
             blockchain.transaction.append(Award_Transaction)  # 只有这一步是必须的，后面的返回值可以修改
+            #这条交易信息直接加入所有人的计算表单
+
             value = {"msg": msg,
                      "Award_Transaction": Award_Transaction}
             return jsonify(value), 200
@@ -97,13 +100,18 @@ def longchain():
 def TxRoot():#使用方法——输入交易返回最终root值
     tx = request.get_json()
     return blockchain.MerkleRoot(tx)
-
 @app.route("/AcCreate",methods=['GET'])
 def AcCreate():
+    '''
+    传入json
+    {
+    "id":id --传入用户名
+    '''
+    id = request.get_json()['id']
     private_key = GenSk()
     publick_key = GenPk(private_key)
     try:
-        adress = AdCre(private_key)
+        adress = AdCre(private_key,id)
     except Exception as e:
         return e
     response = {
@@ -116,7 +124,7 @@ def AcCreate():
 
 @app.route("/tx/publish",methods=['POST'])
 def TxPublish():
-    #返回对交易的加密
+    #返回对交易的签名
     '''
     {
     "private_key":,

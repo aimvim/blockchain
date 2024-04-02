@@ -132,6 +132,7 @@ class BlockChain:
             msql = 'select amount from pkadress where adress="{}"'.format(sender_adress)
             cursor(msql)
             sender_amount = cursor.fetchone()[0]
+
             if (sender_amount >= (Fees + amount)):
                 signature = new_transaction['signature']  # 先得到具体的签名值
                 recipient = new_transaction['data']['outputs']['recipient']

@@ -17,14 +17,38 @@ def volunteer_register():
     CryptPasswd = hashlib.sha256(UserInfo["password"].encode("utf8")).hexdigest()#哈希函数加密使用utf8编码形式
     sql ='insert into VolunteerInfo values("{}","{}")'.format(UserInfo['id'],CryptPasswd)#将user信息加入到数据库中
     #将注册信息加入到数据库中，或者返回id已被使用的错误
+    sql1 ='''
+    create table mission_published_{}(
+    id int auto_increment primary key,
+    name varchar(64),
+    area varchar(64),
+    begintime datetime,
+    endtime datetime,
+    activitytime float not null,
+    award double not null,
+    mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
+    details varchar(1000),
+    status varchar(16) default "not finished",
+    checked varchar(3) check(checked in ("not","yes")) default "not",
+    uploader varchar(8) not null,
+    uploader_company varchar(32) not null,
+    constraint Fk foreign key(name,area,status)  # 修改这里，移除 status 列
+    references mission_published(name,area,status)
+    on update cascade
+);
+    '''.format(UserInfo['id'])#建立个人私人的表
     try:
         cursor.execute(sql)
+        db.commit()
+        cursor.execute(sql1)
         db.commit()
         cursor.close()
         db.close()
         return "注册成功",200
     except Exception as e:
         return str(e),400
+
+
 
 #admin的注册需要邀请码和注册码
 
