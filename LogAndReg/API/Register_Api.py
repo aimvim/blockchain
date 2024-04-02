@@ -1,35 +1,73 @@
 import hashlib
-from flask import Flask,request
+from flask import Flask, request, jsonify
 import pymysql
 
 app = Flask(__name__)
-@app.route("/user_register",methods=['POST'])
-def user_register():
+
+#user注册需要邀请码和证明材料，并且需要等待后才能进行
+@app.route("/volunteer_register",methods=['POST'])
+def volunteer_register():
     UserInfo = request.get_json()
     try:
         db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
-        return e #如果数据库连接失败则返回错误原因
+        return e,400 #如果数据库连接失败则返回错误原因
     cursor = db.cursor()
     #密码存入数据库中采用密文的形式
     CryptPasswd = hashlib.sha256(UserInfo["password"].encode("utf8")).hexdigest()#哈希函数加密使用utf8编码形式
-    sql ='insert into UserInfo values("{}","{}")'.format(UserInfo['id'],CryptPasswd)#将user信息加入到数据库中
+    sql ='insert into VolunteerInfo values("{}","{}")'.format(UserInfo['id'],CryptPasswd)#将user信息加入到数据库中
     #将注册信息加入到数据库中，或者返回id已被使用的错误
+    sql1 ='''
+    create table mission_published_{}(
+    id int auto_increment primary key,
+    name varchar(64),
+    area varchar(64),
+    begintime datetime,
+    endtime datetime,
+    activitytime float not null,
+    award double not null,
+    mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
+    details varchar(1000),
+    status varchar(16) default "not finished",
+    checked varchar(3) check(checked in ("not","yes")) default "not",
+    uploader varchar(8) not null,
+    uploader_company varchar(32) not null,
+    constraint Fk foreign key(name,area,status)  # 修改这里，移除 status 列
+    references mission_published(name,area,status)
+    on update cascade
+);
+    '''.format(UserInfo['id'])#建立个人私人的表
     try:
         cursor.execute(sql)
         db.commit()
+        cursor.execute(sql1)
+        db.commit()
         cursor.close()
         db.close()
-        return "注册成功"
+        return "注册成功",200
     except Exception as e:
-        return str(e)
+        return str(e),400
+
+
+
+#admin的注册需要邀请码和注册码
+
 @app.route("/admin_register",methods=['POST'])
 def admin_register():
+    '''
+    传入的文档
+    {
+    "id":id,
+    "passwd":passwd,
+    "invite_code":inco,
+    "register_code":rco
+    }
+    '''
     admininfo = request.get_json()
     try:
         db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
-        return str(e)
+        return str(e),400
     cursor = db.cursor(cursor = pymysql.cursors.DictCursor)
     #首先判断注册码是否正确
     sql = "select code from register_code"
@@ -37,39 +75,69 @@ def admin_register():
     result = cursor.fetchall()
     code = {'code':"{}".format(admininfo['register_code'])}
     if code not in result:
-        return "Wrong Code!"
-    else:#注册码正确则直接注册
-        CryptPasswd = hashlib.sha256(admininfo["password"].encode("utf8")).hexdigest() #哈希函数加密使用utf8编码形式
-        sql = 'insert into admininfo value("{}","{}")'.format(admininfo['id'],CryptPasswd)
+        return "Wrong Register Code!",400
+    else:#注册码正确则验证邀请码
+        sql = "select invite_code from admininfo"
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        print(result)
+        InviteCode = {'invite_code':"{}".format(admininfo['invite_code'])}
+        print(InviteCode)
+        if InviteCode not in result:
+            return "Wrong Invite Code!",400
+        else:
+            #随机为管理员生成邀请码，并将管理员信息加入数据库
+            #只有status为0的管理员具有邀请码，邀请码之后可以设计为随时间改变的
+            CryptPasswd = hashlib.sha256(admininfo["passwd"].encode("utf8")).hexdigest()  # 哈希函数加密使用utf8编码形式
+            sql = 'insert into admininfo(`id`,`password`,`register_code`,`status`) value("{}","{}","{}",{});'.format(admininfo['id'],CryptPasswd,admininfo['register_code'],1)
+            #之后可以为超级管理员添加更多的权限
+            #register_code可以看管理员背靠哪一家公司
+            #注册码为"system"的背靠系统
+            cursor.execute(sql)
+            db.commit()
+            cursor.close()
+            db.close()
+            return jsonify(True),200
+
+#volunteer的登录注册是最简易的，不需要任何的审核
+@app.route("/user_register", methods=['POST'])
+def user_register():
+    '''
+    输入的json格式为
+    {
+    "id":id,
+    "passwd":pwd,
+    "register_code":rco,
+    "proof":url
+    }
+    '''
+    VolunteerInfo = request.get_json()
+    try:
+        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, charset="utf8", db="blockchain")
+    except Exception as e:
+        return str(e), 400  # 如果数据库连接失败则返回错误原因
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    # 密码存入数据库中采用密文的形式
+    CryptPasswd = hashlib.sha256(VolunteerInfo["passwd"].encode("utf8")).hexdigest()  # 哈希函数加密使用utf8编码形式
+    sql = "select code from register_code"
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    code = {'code': "{}".format(VolunteerInfo['register_code'])}
+    if code not in result:
+        return "Wrong Register Code!", 400
+    else:
+        # 这里，每个人应该配备自己私人独立的表单(这里就已经创建好了私人的表单)
+        sql = 'INSERT INTO userinfo VALUE ("{}","{}","{}","{}","not");'.format(VolunteerInfo['id'], CryptPasswd, VolunteerInfo['register_code'], VolunteerInfo['proof'])
+        # 将注册信息加入到数据库中，或者返回id已被使用的错误
         try:
             cursor.execute(sql)
             db.commit()
             cursor.close()
             db.close()
-            return "注册成功"
+            return "注册成功", 200
         except Exception as e:
-            return str(e)
+            return str(e), 400
 
-@app.route("/volunteer_register",methods=['POST'])
-def volunteer_register():
-    VolunteerInfo = request.get_json()
-    try:
-        db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
-    except Exception as e:
-        return e #如果数据库连接失败则返回错误原因
-    cursor = db.cursor()
-    #密码存入数据库中采用密文的形式
-    CryptPasswd = hashlib.sha256(VolunteerInfo["password"].encode("utf8")).hexdigest()#哈希函数加密使用utf8编码形式
-    sql ='insert into VolunteerInfo values("{}","{}")'.format(VolunteerInfo['id'],CryptPasswd)#将user信息加入到数据库中
-    #将注册信息加入到数据库中，或者返回id已被使用的错误
-    try:
-        cursor.execute(sql)
-        db.commit()
-        cursor.close()
-        db.close()
-        return "注册成功"
-    except Exception as e:
-        return str(e)
 
 if __name__ == "__main__":
     app.run()
