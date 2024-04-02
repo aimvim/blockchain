@@ -67,7 +67,23 @@
     formRef.value.validate((value) => {
       if (value) {
         if (form.identity === '管理员') {
-          axios.post('/AdminLogin', form).then(res => {
+          axios.post('http://localhost:5000/AdminLogin',
+              {
+                id: form.username,
+                password: form.password
+              }).then(res => {
+            if (res.data.code === 200) {
+              localStorage.setItem('identity', form.identity)
+              localStorage.setItem('username', form.username)
+              router.push('/home')
+            }
+          })
+        } else if (form.identity === '志愿者') {
+          axios.post('http://localhost:5000/VolunteerLogin',
+              {
+                id: form.username,
+                password: form.password
+              }).then(res => {
             if (res.data.code === 200) {
               localStorage.setItem('identity', form.identity)
               localStorage.setItem('username', form.username)
@@ -75,7 +91,11 @@
             }
           })
         } else {
-          axios.post('/login', form).then(res => {
+          axios.post('http://localhost:5000/UserLogin',
+              {
+                id: form.username,
+                password: form.password
+              }).then(res => {
             if (res.data.code === 200) {
               localStorage.setItem('identity', form.identity)
               localStorage.setItem('username', form.username)

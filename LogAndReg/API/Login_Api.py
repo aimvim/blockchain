@@ -1,16 +1,19 @@
 import pymysql
 import hashlib
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
 #注册的时候应该考虑一下身份验证的问题
 #管理员，志愿者，用户应该使用不同的数据库
 #user登录成功后返回id信息和背靠的公司信息
+CORS(app)
 @app.route("/UserLogin",methods=['POST'])
 def userlogin():
     db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
     cursor = db.cursor()
     userinfo = request.get_json()
+    print(userinfo)
     sql = 'select password from userinfo where id="{}"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
     cursor.execute(sql)
     result = cursor.fetchone()[0]
