@@ -57,3 +57,13 @@ create table proof_table(
     references mission_published(name,area)
     on update cascade
 );
+
+create table transaction(
+    signature char(128),
+    senderadress varchar(64) not null,
+    amount double,
+    fees double,
+    recipient varchar(64),
+    onchain varchar(3) check(onchain in ("yes","not")) default "not",
+    miner varchar(5102)
+);

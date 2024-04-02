@@ -22,7 +22,7 @@ def PM():
     '''此处返回的类型为list类型'''
     data = request.get_json()
     page = data['page']
-    db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="test")
+    db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where uploader ="{}" limit {},4;'.format(data['id'],4*(page-1))
     cursor.execute(sql)
