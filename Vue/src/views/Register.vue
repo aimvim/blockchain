@@ -36,6 +36,12 @@
               <el-input style="width: 250px" v-model="form.invitationCode" :placeholder="codePlaceholder" />
             </el-form-item>
           </div>
+          <div style="display: flex" v-if="form.identity === '管理员' || form.identity === '用户'">
+            <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="20px"><Message /></el-icon>
+            <el-form-item prop="registrationCode">
+              <el-input style="width: 250px" v-model="form.registrationCode" placeholder="注册码" />
+            </el-form-item>
+          </div>
           <div style="display: flex" v-if="form.identity === '用户'">
             <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="19px"><DocumentChecked /></el-icon>
             <el-upload class="upload" drag action="awa" multiple :before-upload="beforeUpload">
@@ -50,12 +56,6 @@
               </template>
             </el-upload>
           </div>
-          <div style="display: flex" v-if="form.identity === '管理员'">
-            <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="20px"><Message /></el-icon>
-            <el-form-item prop="registrationCode">
-              <el-input style="width: 250px" v-model="form.registrationCode" placeholder="注册码" />
-            </el-form-item>
-          </div>
           <el-link style="margin-top: 20px" href="/login">返回</el-link>
           <br>
           <el-button class="login-button" type="primary" @click="register">注册</el-button>
@@ -68,6 +68,8 @@
 <script setup lang="ts" name="Login">
 import {reactive, ref, toRef} from "vue"
 import type {UploadProps} from "element-plus";
+import axios from "axios";
+import router from "@/router";
 
   // TODO: 补充注册逻辑
 
@@ -141,6 +143,62 @@ import type {UploadProps} from "element-plus";
     }
 
     return true;
+  }
+
+  function register() {
+    if (formRef.value.validate()) {
+      if (form.identity === '用户') {
+        axios.post('http://localhost:5000/user_register',
+            {
+              id: form.username,
+              password: form.password,
+              register_code: form.registrationCode,
+              proof: "sdandsehnqoinqoi"
+            }).then(res => {
+          if (res.status === 200) {
+            ElMessage.success('注册成功')
+            localStorage.setItem('identity', form.identity)
+            localStorage.setItem('username', form.username)
+            router.push('/login')
+          } else {
+            ElMessage.error('注册失败')
+          }
+        })
+      } else if (form.identity === '志愿者') {
+        axios.post('http://localhost:5000/volunteer_register',
+            {
+              id: form.username,
+              password: form.password,
+              invitationCode: form.invitationCode
+            }).then(res => {
+          if (res.status === 200) {
+            ElMessage.success('注册成功')
+            localStorage.setItem('identity', form.identity)
+            localStorage.setItem('username', form.username)
+            router.push('/login')
+          } else {
+            ElMessage.error('注册失败')
+          }
+        })
+      } else {
+        axios.post('http://localhost:5000/admin_register',
+            {
+              id: form.username,
+              passwd: form.password,
+              register_code: form.registrationCode,
+              invite_code: form.invitationCode
+            }).then(res => {
+          if (res.status === 200) {
+            ElMessage.success('注册成功')
+            localStorage.setItem('identity', form.identity)
+            localStorage.setItem('username', form.username)
+            router.push('/login')
+          } else {
+            ElMessage.error('注册失败')
+          }
+        })
+      }
+    }
   }
 
 </script>

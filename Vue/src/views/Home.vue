@@ -24,7 +24,7 @@
                 <span class="pText">用户名：{{ username }}</span>
                 <br>
                 <br>
-                <span class="pText">机构：电子科技大学</span>
+                <span class="pText">机构：{{ institution }}</span>
               </div>
             </template>
           </el-popover>
@@ -48,17 +48,20 @@
             <el-input v-model="search" style="width: 240px"
                       :prefix-icon="Search" placeholder="请输入" clearable/>
           </div>
-          <div style="display: flex">
-            <Detail :index="curIndex"/>
-            <Detail :index="curIndex"/>
-          </div>
-          <div style="display: flex">
-            <Detail :index="curIndex"/>
-            <Detail :index="curIndex"/>
+          <div v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
+                  element-loading-svg-view-box="-10, -10, 50, 50" element-loading-background="rgba(122, 122, 122, 0.8)" style="width: 66.15vw; margin-top: 5px">
+            <div style="display: flex">
+              <Detail :index="curIndex"/>
+              <Detail :index="curIndex"/>
+            </div>
+            <div style="display: flex">
+              <Detail :index="curIndex"/>
+              <Detail :index="curIndex"/>
+            </div>
           </div>
           <div style="text-align: center; display: flex">
             <span style="margin-top: 2vh; margin-left: 20vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
-            <el-pagination class="pagination" :page-size="4" :pager-count="6" layout="prev, pager, next" :total="total"></el-pagination>
+            <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="load" :total="total"></el-pagination>
           </div>
           <el-dialog width="30%" v-model="openTask" title="发布任务" :close-on-click-modal="false" :onClose="close">
             <div class="dialog">
@@ -116,17 +119,21 @@
   import {reactive, ref} from "vue"
   import {Search} from "@element-plus/icons-vue"
   import Detail from "./Detail.vue"
+  import axios from "axios";
 
   const menu = ref("1")
   const identity = localStorage.getItem('identity')
   const username = localStorage.getItem('username')
+  const institution = localStorage.getItem('institution') !== "" ? localStorage.getItem('institution') : "无" // 可能 bug
   const taskMenu = ref('1')
   const search = ref("")
+  const loading = ref(false)
   const total = ref(6532)
   const curIndex = ref('1')
   const openTask = ref(false)
   const fullscreenLoading = ref(false)
   const formRef = ref()
+  const curPage = ref(1)
   const form = reactive({
     name: "",
     location: "",
@@ -152,6 +159,16 @@
       {required: true, message: "请输入描述", trigger: "blur"}
     ]
   })
+  const svg = `
+        <path class="path" d="
+          M 30 15
+          L 28 17
+          M 25.61 25.61
+          A 15 15, 0, 0, 1, 15 30
+          A 15 15, 0, 1, 1, 27.99 7.5
+          L 15 15
+        " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
+      `
 
   const handleSelect2 = (index: string) => {
     console.log(index)
@@ -194,7 +211,22 @@
     })
   }
 
+  function load() {
+    loading.value = true
+    axios.get('http://localhost:5000/PublishedMission', {
+      params: {
+        page: curPage,
+        id: username
+      }
+    }).then(res => {
+      // TODO: 更新数据
+      console.log(res.data)
+      loading.value = false
+    })
+  }
   // TODO：查询，任务详情，发布任务，交互信息，分页
+
+  load()
 
 </script>
 
