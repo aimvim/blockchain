@@ -46,12 +46,14 @@ create table mission_published(
     status varchar(16) check(status in ("not finished","finished")) default "not finished",
     checked varchar(3) check(checked in ("not","yes")) default "not",
     uploader varchar(8) not null,
-    uploader_company varchar(32) not null
+    uploader_company varchar(32) not null,
+    volunteer varchar(10000)
 );
 
 create table proof_table(
     id int,
-    proof varchar(64)
+    proof varchar(64),
+    uploader varchar(64) not null
 );
 
 create table transaction(

@@ -263,7 +263,7 @@ def APM():
     data = request.get_json()
     name = data['name']
     area = data['area']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="test")
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = "update mission_published set status='finished' where name='{}' and area='{}'".format(name,area)
     try:
@@ -275,8 +275,114 @@ def APM():
     except Exception as e:
         return jsonify(e), 500
 
+@app.route("/Check/SubmittedProof",methods=['GET'])
+def CSP():
+    ''''
+    {"page":page}--编号
+    '''
+    page = request.get_json()['page']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = 'select * from mission_published where id in (select id from proof_table) and status="not finished" limit {},4'.format(4*page-4)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.execute('select count(*) as num from mission_published where id in (select id from proof_table) and status="not finished"')
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
+    except Exception as e:
+        return jsonify(str(e)),500
 
+@app.route("/Finished/SubmittedProof",methods=['GET'])
+def FSP():
+    ''''
+    {"page":page}--编号
+    '''
+    page = request.get_json()['page']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = 'select * from mission_published where id in (select id from proof_table) and status="finished" limit {},4'.format(4*page-4)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.execute('select count(*) as num from mission_published where id in (select id from proof_table) and status="finished"')
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
+    except Exception as e:
+        return jsonify(str(e)),500
 
+#打开审核界面
+@app.route("/CCpage")
+def ccp():
+    ''''
+    传入
+    {"id":id}
+    '''
+    id = request.get_json()['id']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = 'select * from mission_published where id={}'.format(id)
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchone()
+        sql = 'select proof from proof_table where id={}'.format(id)
+        cursor.execute(sql)
+        proof = cursor.fetchone()['proof']
+        result.update({"proof":proof})
+        return jsonify(result),200
+    except Exception as e:
+        return jsonify(str(e)),500
+
+#管理员通过proof
+@app.route("/PassProof", methods=['GET'])
+def PP():
+    data = request.get_json()
+    mission_id = data['id']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    try:
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            # 使用参数化查询来更新状态
+            sql = 'UPDATE mission_published SET status=%s WHERE id = %s'
+            cursor.execute(sql, ("finished", mission_id))
+            db.commit()
+
+            # 获取奖励金额
+            sql = 'SELECT award FROM mission_published WHERE id=%s'
+            cursor.execute(sql, (mission_id,))
+            amount = cursor.fetchone()['award']
+            print(amount)
+
+            # 获取上传者信息
+            sql = "SELECT uploader FROM proof_table WHERE id = %s"
+            cursor.execute(sql, (mission_id,))
+            uploader = cursor.fetchone()['uploader']
+            print(uploader)
+
+            # 插入交易记录
+            sql = 'INSERT INTO transaction VALUES(%s, %s, %s, %s, %s, %s, %s, %s)'
+            cursor.execute(sql, ("system", "system", amount-0.1, 0.1, uploader, None, "not", 0))
+            db.commit()
+    except Exception as e:
+        return jsonify(str(e)), 500
+    finally:
+        db.close()
+    return jsonify({"success": True}), 200
 
 
 

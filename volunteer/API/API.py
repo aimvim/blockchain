@@ -44,75 +44,70 @@ def CTM():
     '''
     传入的json为
     {
-    "id":id, -- 用户的名称
+    "username":username, -- 用户的名称
+    "id":id,
     "name":name, -- 任务的name
     "area":area, -- 任务的area
     }
     '''
-    data = request.get_json() # 一次性获取请求数据
+    data = request.get_json()  # 一次性获取请求数据
+    username = data['username']
     id = data['id']
-    name = data['name']
-    area = data['area']
     try:
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain", cursorclass=pymysql.cursors.DictCursor)
+        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain",cursorclass=pymysql.cursors.DictCursor)
         cursor = db.cursor()
+
         # 使用参数化查询
-        sql = 'SELECT * FROM mission_published WHERE name=%s AND area=%s'
-        cursor.execute(sql, (name, area))
-        result = cursor.fetchone()  # 假设只有一条记录匹配
-        if result:
-            # 使用参数化查询防止SQL注入
-            sql = '''INSERT INTO mission_published_{0}(name,area,begintime,endtime,activitytime,award,mcharacter,details,status,checked,uploader,uploader_company) 
-                     VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'''.format(id)
-            print(sql)
-            cursor.execute(sql, (
-                result['name'], result['area'], result['begintime'],
-                result['endtime'], result['activitytime'], result['award'],
-                result['mcharacter'], result['details'], result['status'],
-                result['checked'], result['uploader'], result['uploader_company']
-            ))
-            db.commit()
-            return jsonify("Success!"), 200
+        sql = 'SELECT volunteer FROM mission_published WHERE id = {}'.format(id)
+        cursor.execute(sql)
+        volunteer = cursor.fetchone()['volunteer']
+        print(volunteer)
+        if volunteer==None:
+            volunteer = username + "?"
         else:
-            return jsonify("No matching mission found."), 404
-    except Exception as e:
-        return jsonify(str(e)), 500
-    finally:
+            volunteer = volunteer + username + "?"
+        cursor.execute('UPDATE mission_published SET volunteer = %s WHERE id = %s', (volunteer, id))
+        db.commit()
         cursor.close()
         db.close()
+        return jsonify("Success"), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 #查询已接取的任务
-@app.route("/MissionCatched",methods=['GET'])
+@app.route("/MissionCatched", methods=['GET'])
 def MS():
     ''''
-    传入的数据json为
-    {
-    ”id“:id,--id为用户名
-    "page":page
-    }'''
+    json
+    {"id":id,"page":page}
+    '''
     data = request.get_json()
-    id = data['id']
-    page = data['page']
+    user_id = data['id']
+    page = int(data['page'])
+    offset = (page - 1) * 4  # 假设'page'从1开始
+
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-    cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published_{} where checked = "yes" and status="not finished" limit {},4;'.format(
-        id,4 * (page - 1))
     try:
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        cursor.execute('select count(*) as num from mission_published_{} where checked = "yes" and status="not finished"'.format(id))
-        num = cursor.fetchone()['num']
-        print(num)
-        if result == ():
-            response = [{'num': num}]
-            return jsonify(response)
-        else:
-            result.append({"num": num})
-            cursor.close()
-            db.close()
-            return jsonify(result), 200  # 返回消息的全部信息
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s LIMIT %s, 4'
+            cursor.execute(sql, (f'{user_id}%', offset))
+            result = cursor.fetchall()
+            count_sql = 'SELECT COUNT(*) AS num FROM mission_published WHERE volunteer LIKE %s'
+            cursor.execute(count_sql, (f'{user_id}%',))
+            num = cursor.fetchone()['num']
+            if not result:
+                result = [{'num': num}]
+            else:
+                result.append({"num": num})
+
+            return jsonify(result), 200
     except Exception as e:
-        return jsonify(e), 500
+        return jsonify({'error': str(e)}), 500
+    finally:
+        db.close()
+
+
 
 #查询接取且已完成的任务
 @app.route("/CatchMissionFinished",methods=['Get'])
@@ -124,28 +119,29 @@ def CMF():
     "page":page
     }'''
     data = request.get_json()
-    id = data['id']
-    page = data['page']
+    user_id = data['id']
+    page = int(data['page'])
+    offset = (page - 1) * 4  # 假设'page'从1开始
+
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-    cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published_{} where checked = "yes" and status="finished" limit {},4;'.format(
-        id,4 * (page - 1))
     try:
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        cursor.execute('select count(*) as num from mission_published_{} where checked = "yes" and status="not finished"'.format(id))
-        num = cursor.fetchone()['num']
-        print(num)
-        if result == ():
-            response = [{'num': num}]
-            return jsonify(response)
-        else:
-            result.append({"num": num})
-            cursor.close()
-            db.close()
-            return jsonify(result), 200  # 返回消息的全部信息
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s and status="finished" LIMIT %s, 4'
+            cursor.execute(sql, (f'{user_id}%', offset))
+            result = cursor.fetchall()
+            count_sql = 'SELECT COUNT(*) AS num FROM mission_published WHERE volunteer LIKE %s and status="finished"'
+            cursor.execute(count_sql, (f'{user_id}%',))
+            num = cursor.fetchone()['num']
+            if not result:
+                result = [{'num': num}]
+            else:
+                result.append({"num": num})
+
+            return jsonify(result), 200
     except Exception as e:
-        return jsonify(e), 500
+        return jsonify({'error': str(e)}), 500
+    finally:
+        db.close()
 
 #下面这个API的作用是完成任务的proof上传,即上传证明材料
 @app.route("/UpdateProof",methods=['GET'])
@@ -155,15 +151,17 @@ def UP():
     {
     "id":id
     "proof":pu --即上传的图片的url
+    "uploader":
     }
     多传name和area是方便我定位使用的
     '''
     data = request.get_json()
     id = data['id']
     pu = data['proof']
+    uploader = data['uploader']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor()
-    sql = "insert into proof_table value({},'{}')".format(id,pu)
+    sql = "insert into proof_table value({},'{}','{}')".format(id,pu,uploader)
     try:
         cursor.execute(sql)
         db.commit()
@@ -187,9 +185,18 @@ def STX():
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200  # 返回消息的全部信息
+        cursor.execute('select count(*) as num from transaction where onchain="not"'.format(
+                id))
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(e), 500
 
@@ -463,7 +470,7 @@ def mine():
     id = data['id']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE "{}%"'.format(id)
+    sql = 'select signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE "{}%"'.format(id)
     cursor.execute(sql)
     result = cursor.fetchall()
     index = 1
@@ -521,7 +528,10 @@ def mine():
                 cursor.execute('select amount from pkadress where adress=%s', (recipient))
                 rpamount= cursor.fetchone()['amount']
                 cursor.execute('update pkadress set amount={} where adress="{}"'.format(rpamount + amount + fees, recipient))
-            cursor()
+                db.commit()
+                cursor.execute('select amount from pkadress where adress=%s',(id))
+                mamount=cursor.fetchone()['amount']
+                cursor.execute('update pkadress set amount = {} where adress="{}"'.format(mamount+fees,id))
             #实现出块奖励
             cursor('insert into transaction(`signature`,`senderadress`,`amount`,`fees`,`recipient`,`tx_nonce`) value("{}","{}",{},{},"{}",{})'.format("system","system",9.9,0.1,id,0))
             db.commit()
@@ -531,6 +541,64 @@ def mine():
             return msg, 200
     else:
         return "区块格式错误", 200
+
+#下面这个api作用是查找交易信息
+@app.route("/TxInfo",methods=['GET'])
+def txinfo():
+    ''''传入的消息
+    json{"adress":}
+    '''
+    data = request.get_json()
+    adress = data['adress']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    try:
+        sql = 'select signature,senderadress,amount,fees,recipient,tx_nonce from transaction where onchain="not" and (senderadress="{}" or recipient="{}")'.format(adress,adress)
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        return jsonify(result),200
+    except Exception as e:
+        return jsonify(e),500
+
+@app.route("/AcCreate",methods=['GET'])
+def AcCreate():
+    '''
+    传入json
+    {
+    "id":id --传入用户名
+    '''
+    id = request.get_json()['id']
+    private_key = GenSk()
+    publick_key = GenPk(private_key)
+    try:
+        adress = AdCre(private_key,id)
+    except Exception as e:
+        return e
+    response = {
+        "sk":binascii.hexlify(private_key).decode(),
+        "pk":binascii.hexlify(publick_key).decode(),
+        "adress":adress,
+        "WARNING!":"请保存好你的私钥！"
+    }
+    return jsonify(response)
+
+
+@app.route("/lll",methods=['GET'])
+def lll():
+    data = request.get_json()
+    return jsonify(data)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
