@@ -70,6 +70,7 @@ def admin_register():
         if InviteCode not in result:
             return "Wrong Invite Code!",400
         else:
+            print('s')
             #随机为管理员生成邀请码，并将管理员信息加入数据库
             #只有status为0的管理员具有邀请码，邀请码之后可以设计为随时间改变的
             CryptPasswd = hashlib.sha256(admininfo["passwd"].encode("utf8")).hexdigest()  # 哈希函数加密使用utf8编码形式
