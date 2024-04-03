@@ -24,6 +24,7 @@ class BlockChain:
                 print('b')
                 if self.POW(last_block, block):
                     print('c')
+                    block.update({"timestamp": time.time()})
                     self.blockchain.append(block)
                     return True
                 else:

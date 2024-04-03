@@ -50,12 +50,8 @@ create table mission_published(
 );
 
 create table proof_table(
-    name varchar(64),
-    area varchar(64),
-    proof varchar(64),
-    constraint fkk foreign key(name,area)
-    references mission_published(name,area)
-    on update cascade
+    id int,
+    proof varchar(64)
 );
 
 create table transaction(
@@ -65,5 +61,6 @@ create table transaction(
     fees double,
     recipient varchar(64),
     onchain varchar(3) check(onchain in ("yes","not")) default "not",
-    miner varchar(5102)
+    miner varchar(5102),
+    tx_nonce int not null
 );

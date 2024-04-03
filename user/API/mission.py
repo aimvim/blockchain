@@ -14,7 +14,7 @@ def PM():
     '''
     {
     "id":id
-    "page":123
+    "page":1
     }
     '''
     #对具体返回消息的要求可以进行更改
@@ -24,13 +24,23 @@ def PM():
     page = data['page']
     db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where uploader ="{}" limit {},4;'.format(data['id'],4*(page-1))
-    cursor.execute(sql)
-    result = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return jsonify(result),200#返回消息的全部信息
-
+    sql = 'select * from mission_published where uploader ="{}" and checked="yes" limit {},4;'.format(data['id'],4*(page-1))
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.execute('select count(*) as num from mission_published where uploader=%s and checked="yes"',(data['id']))
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result),200#返回消息的全部信息
+    except Exception as e:
+        return jsonify(e),500
 @app.route("/FinishedMission", methods=['GET'])
 def FM():
     # 针对传入信息
@@ -50,9 +60,17 @@ def FM():
     try:
         cursor.execute(sql1)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200
+        cursor.execute('select count(*) as num from mission_published where status = "finished" and uploader=%s', (data['id']))
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(str(e)), 500
 

@@ -19,9 +19,16 @@ def NotCheckedMission():
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200  # 返回消息的全部信息
+        cursor.execute('select count(*) as num from mission_published where checked = "not" and status="not finished"')
+        num = cursor.fetchone()['num']
+        if result==():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(e),500
 
@@ -41,9 +48,17 @@ def CheckedMission():
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200  # 返回消息的全部信息
+        cursor.execute('select count(*) as num from mission_published where checked = "yes" and status="not finished"')
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response=[{'num':num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(e),500
 
@@ -119,16 +134,24 @@ def UN():
     page=request.get_json()['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = "select * from userinfo where checked='not' limit {},6".format(6*page-6)
+    sql = "select * from userinfo where checked='not' limit {},4".format(4*page-4)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result),200
+        cursor.execute('select count(*) as num from userinfo where checked = "not"')
+        num = cursor.fetchone()['num']
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result),200
     except Exception as e:
         return jsonify(e),500
 
+#返回已经通过审核的用户
 @app.route("/CtUser")
 def CN():
     ''''
@@ -139,13 +162,20 @@ def CN():
     page=request.get_json()['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
-    sql = "select * from userinfo where checked='yes' limit {},6".format(6*page-6)
+    sql = "select * from userinfo where checked='yes' limit {},4".format(4*page-4)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result),200
+        cursor.execute('select count(*) as num from userinfo where checked = "yes"')
+        num = cursor.fetchone()['num']
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result),200
     except Exception as e:
         return jsonify(e),500
 
