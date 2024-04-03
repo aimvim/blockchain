@@ -7,6 +7,12 @@ app = Flask(__name__)
 #user注册需要邀请码和证明材料，并且需要等待后才能进行
 @app.route("/volunteer_register",methods=['POST'])
 def volunteer_register():
+    ''''
+    {
+    "id":id,
+    "password":passwd
+    }
+    '''
     UserInfo = request.get_json()
     try:
         db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
@@ -32,7 +38,7 @@ def volunteer_register():
     checked varchar(3) check(checked in ("not","yes")) default "not",
     uploader varchar(8) not null,
     uploader_company varchar(32) not null,
-    constraint Fk foreign key(name,area,status)  # 修改这里，移除 status 列
+    constraint foreign key(name,area,status)
     references mission_published(name,area,status)
     on update cascade
 );

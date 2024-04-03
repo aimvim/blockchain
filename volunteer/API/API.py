@@ -4,7 +4,7 @@ from volunteer.functions.blockchain import *
 from volunteer.functions.Account import *
 
 blockchain = BlockChain()
-
+blockchain.genesis_block()
 app=Flask(__name__)
 
 #这里显示已经被管理员审核后的内容，具有分页功能
@@ -23,9 +23,17 @@ def TMC():
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200  # 返回消息的全部信息
+        cursor.execute('select count(*) as num from mission_published where checked = "yes" and status="not finished"')
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(e),500
 
@@ -74,7 +82,7 @@ def CTM():
         db.close()
 
 #查询已接取的任务
-@app.route("/MissionSelected",methods=['GET'])
+@app.route("/MissionCatched",methods=['GET'])
 def MS():
     ''''
     传入的数据json为
@@ -92,9 +100,17 @@ def MS():
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200  # 返回消息的全部信息
+        cursor.execute('select count(*) as num from mission_published_{} where checked = "yes" and status="not finished"'.format(id))
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(e), 500
 
@@ -117,9 +133,17 @@ def CMF():
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result), 200  # 返回消息的全部信息
+        cursor.execute('select count(*) as num from mission_published_{} where checked = "yes" and status="not finished"'.format(id))
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(e), 500
 
@@ -129,19 +153,17 @@ def UP():
     ''''
     传入的json为
     {
-    "name":name,
-    "area":area,
-    "proof_url":pu --即上传的图片的url
+    "id":id
+    "proof":pu --即上传的图片的url
     }
     多传name和area是方便我定位使用的
     '''
     data = request.get_json()
-    name = data['name']
-    area = data['area']
-    pu = data['proof_url']
+    id = data['id']
+    pu = data['proof']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor()
-    sql = "insert into proof_table value('{}','{}','{}')".format(name,area.pu)
+    sql = "insert into proof_table value({},'{}')".format(id,pu)
     try:
         cursor.execute(sql)
         db.commit()
@@ -174,7 +196,7 @@ def STX():
 
 
 #发布交易A——表中自动返回签名
-@app.route("/tx/publish",methods=['POST'])
+@app.route("/sig/tx/publish",methods=['POST'])
 def TxPublish():
     #返回对交易的签名
     '''
@@ -229,7 +251,7 @@ def TXPublish():
     '''
     传入
     {
-    “Signature": sig,
+    “Signature”: sig,
     "Senderadress": sed,
     "Amount": am,
     "Fees": fees,
@@ -245,29 +267,37 @@ def TXPublish():
         rep = data['Recipient']  # Fixed capitalization
         db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
         cursor = db.cursor()
-        msql = 'select amount from pkadress where adress=%s'
+
+        # Check sender's balance
+        msql = 'SELECT amount FROM pkadress WHERE adress=%s'
         cursor.execute(msql, (sd,))
-        sender_amount = cursor.fetchone()[0]
-        if sender_amount >= (fees + am):
-            sql1 = 'select pk from pkadress where adress=%s'
-            sql2 = 'select adress from pkadress where adress=%s'
-            sql3 = 'select tx_nonce from pkadress where adress=%s'
+        sender_amount = cursor.fetchone()
+        if sender_amount is not None and sender_amount[0] >= (fees + am):
+            # Get necessary data from database
+            sql1 = 'SELECT pk FROM pkadress WHERE adress=%s'
+            sql2 = 'SELECT adress FROM pkadress WHERE adress=%s'
+            sql3 = 'SELECT tx_nonce FROM pkadress WHERE adress=%s'
             cursor.execute(sql1, (sd,))
             result1 = cursor.fetchone()
             cursor.execute(sql2, (rep,))
             result2 = cursor.fetchone()
             cursor.execute(sql3, (sd,))
             result3 = cursor.fetchone()
-            if None in (result1, result2, result3):  # 任何一个账户是不存在的
+
+            # Check if any necessary account is missing
+            if None in (result1, result2, result3):
                 cursor.close()
                 db.close()
                 return jsonify({"success": False}), 500
             else:
-                sql4 = 'update pkadress set tx_nonce=%s where adress=%s'
+                # Update sender's transaction nonce
+                sql4 = 'UPDATE pkadress SET tx_nonce=%s WHERE adress=%s'
                 cursor.execute(sql4, (result3[0] + 1, sd))
                 db.commit()
-                sql = 'INSERT INTO transaction(`signature`,`senderadress`,`amount`,`fees`,`recipient`,`onchain`) VALUES (%s, %s, %s, %s, %s, %s)'
-                values = (sig, sd, am, fees, rep, "not")
+
+                # Insert transaction into database
+                sql = 'INSERT INTO `transaction` (`signature`, `senderadress`, `amount`, `fees`, `recipient`, `onchain`, `tx_nonce`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+                values = (sig, sd, am, fees, rep, "not", result3[0] + 1)
                 cursor.execute(sql, values)
                 db.commit()
                 cursor.close()
@@ -350,53 +380,202 @@ def SMB():
         return jsonify(str(e)), 500
 
 
-
+#返回prehash的值
 @app.route('/PreHash',methods=['GET'])
 def prehash():
     last_block = blockchain.blockchain[-1]
     return blockchain.hash(last_block),200
 
-@app.route("/tx/merkleroot",methods=['GET'])
-def TxRoot():#使用方法——输入交易返回最终root值
+@app.route('/index',methods=['GET'])
+def index():
+    return len(blockchain)
+
+@app.route("/tx/merkleroot", methods=['GET'])
+def TxRoot():
     ''''传入json
     {"id":adr}
     '''
+    tx = []
     id = request.get_json()['id']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = "select * from transaction where miner like '{}%'".format(id)
+    sql = "SELECT * FROM transaction WHERE miner LIKE '{}%'".format(id)
     cursor.execute(sql)
     result = cursor.fetchall()
     print(result)
-    index = 0
+    index = 1
     for data in result:
-        response={
-
+        print(data)
+        print(data['senderadress'])
+        cursor.execute('SELECT tx_nonce FROM transaction WHERE senderadress=%s', (data['senderadress'],))
+        tx_nonce_row = cursor.fetchone()
+        tx_nonce = tx_nonce_row['tx_nonce']
+        print(tx_nonce)
+        response = {
+            "index": index,
+            "data": {
+                "inputs": {
+                    "sender_adress": data['senderadress'],
+                    "tx_nonce": tx_nonce
+                },
+                "outputs": {
+                    "amount": data['amount'],
+                    "recipient": data['recipient'],
+                    "Fees": data['fees']
+                }
+            },
+            "signature": data["signature"]
         }
-
-
-
-
-
-
-
-
+        index = index+1
+        tx.append(response)
+    db.close()
+    # Assuming blockchain.MerkleRoot is a valid function returning the Merkle root
+    # Ensure this function exists and is correctly implemented
+    print(tx)
     return blockchain.MerkleRoot(tx)
 
+@app.route("/version",methods=['GET'])
+def version():
+    return "1.0"
+
+@app.route("/mine",methods=['GET'])#最后了宝贝
+def mine():
+    ''''
+    传入json为
+    {"id": "id",--这个是miner的id
+    "blockheader":{
+    "version":1,
+    "prehash":1,
+    "index":1,
+    "nonce":1,
+    "merkle_root":1,
+    "target":1
+    }}
+    '''
+    data = request.get_json()
+    indexx = data['blockheader']['index']
+    version = data['blockheader']['version']
+    prehash = data['blockheader']['prehash']
+    nonce = data['blockheader']['nonce']
+    merkle_root = data['blockheader']['merkle_root']
+    target = data['blockheader']['target']
+    tx = []
+    id = data['id']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = 'select SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE "{}%"'.format(id)
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    index = 1
+    for data in result:
+        cursor.execute('SELECT tx_nonce FROM transaction WHERE senderadress=%s', (data['senderadress'],))
+        tx_nonce_row = cursor.fetchone()
+        tx_nonce = tx_nonce_row['tx_nonce']
+        response = {
+            "index": indexx,
+            "data": {
+                "inputs": {
+                    "sender_adress": data['senderadress'],
+                    "tx_nonce": tx_nonce
+                },
+                "outputs": {
+                    "amount": data['amount'],
+                    "recipient": data['recipient'],
+                    "Fees": data['fees']
+                }
+            },
+            "signature": data["signature"]
+        }
+        index = index + 1
+        tx.append(response)
+    block = {
+    "blockheader":{
+    "version":version,
+    "prehash":prehash,
+    "index":index,
+    "nonce":nonce,
+    "merkle_root":merkle_root,
+    "target":target
+    },
+    "block":tx}
+    if blockchain.TheBlokCheck(block):
+        # 格式确认
+        if blockchain.add_block(block):
+            # 区块确认
+            #上链成功后实现所有的交易，并且实现出块奖励
+            msg = "挖矿成功"
+            print(msg)
+            #实现交易
+            for data in result:
+                senderadress = data['senderadress']
+                recipient = data['recipient']
+                amount = data['amount']
+                fees = data['fees']
+                signature = data['signature']
+                cursor.execute('update transaction set onchain="yes" where signature=%s',(signature))
+                db.commit()
+                cursor.execute('select amount from pkadress where adress=%s',(senderadress))
+                ramount = cursor.fetchone()['amount']
+                cursor.execute('update pkadress set amount={} where adress="{}"'.format(ramount-amount-fees,senderadress))
+                db.commit()
+                cursor.execute('select amount from pkadress where adress=%s', (recipient))
+                rpamount= cursor.fetchone()['amount']
+                cursor.execute('update pkadress set amount={} where adress="{}"'.format(rpamount + amount + fees, recipient))
+            cursor()
+            #实现出块奖励
+            cursor('insert into transaction(`signature`,`senderadress`,`amount`,`fees`,`recipient`,`tx_nonce`) value("{}","{}",{},{},"{}",{})'.format("system","system",9.9,0.1,id,0))
+            db.commit()
+            return jsonify("Success"), 200
+        else:
+            msg = "错误区块"
+            return msg, 200
+    else:
+        return "区块格式错误", 200
 
 
+
+
+
+
+
+
+#这里不同纯粹是数据类型的问题
+tx= [{
+            "index": 0,
+            "data": {
+                "inputs": {
+                    "sender_adress":"123",
+                    "tx_nonce": 0
+                },
+                "outputs": {
+                    "amount":1.0,
+                    "recipient":"mcosmocmosmcosm,ocmsomcosdm",
+                    "Fees":0.1
+                }
+            },
+            "signature":"dih"
+        },
+
+
+    {
+            "index": 1,
+            "data": {
+                "inputs": {
+                    "sender_adress":'123',
+                    "tx_nonce": 0
+                },
+                "outputs": {
+                    "amount":1.0,
+                    "recipient":"mcosmocmosmcosm,ocmsomcosdm",
+                    "Fees":0.1
+                }
+            },
+            "signature":"dih"
+        }]
+print(tx)
+print(blockchain.MerkleRoot(tx))
 
 #给出侧边框的数据
-@app.route("DetailInformation",methods=['POST'])
-def DI():
-    ''''
-    "version":1.0,
-    "prehash":调用'/PreHsh'这个API,
-    "index":lenth(blockchain),
-    "nonce":这个需要填入
-    "merkle_root":调用'tx/merkleroot'这个API
-    "target":也是自动生成
-    '''
 
 
 

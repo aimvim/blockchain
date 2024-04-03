@@ -1,9 +1,8 @@
-import pymysql
+import hashlib
 
-db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-cursor = db.cursor(pymysql.cursors.DictCursor)
-cursor.execute('select * from transaction')
-result = cursor.fetchall()
-for x in result:
-    print(x['amount'])
-    print("avbd")
+CryptPassword = hashlib.sha256("2423124917".encode("utf8")).hexdigest()
+print(CryptPassword)
+
+x= {"s":1,"ss":2}
+x.update({"l":1})
+print(x)
