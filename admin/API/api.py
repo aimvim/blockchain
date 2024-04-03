@@ -151,6 +151,22 @@ def UN():
     except Exception as e:
         return jsonify(e),500
 
+@app.route("/PassUser",methods=['GET'])
+def passuser():
+    '''
+    {"id":id}  --这里的id是用户的用户名
+    '''
+    id = request.get_json()['id']
+    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
+    try:
+        sql = 'update userinfo set checked = "yes" where id="{}"'.format(id)
+        cursor.execute(sql)
+        db.commit()
+        return jsonify('Success!'),200
+    except Exception as e:
+        return jsonify(str(e)),500
+
 #返回已经通过审核的用户
 @app.route("/CtUser")
 def CN():
@@ -224,56 +240,6 @@ def SCN():
             return jsonify(result), 200
     except Exception as e:
         return jsonify(e),500
-
-
-#这个api的作用是返回提交到管理员处的审核
-@app.route("/SubmitMission",methods=['GET'])
-def SM():
-    ''''
-    传入json
-    {
-    "name":name,
-    "area":area
-    }
-    '''
-    data = request.get_json()
-    name = data['name']
-    area = data['area']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-    cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = "select proof from proof_table where name='{}' and area = '{}'".format(name,area)
-    try:
-        cursor.execute(sql)
-        proof = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(proof),200
-    except Exception as e:
-        return jsonify(e),500
-
-#当管理员允许时
-@app.route("/AdminPassMission",methods=['GET'])
-def APM():
-    ''''
-    {
-    "name":name,
-    "area":area
-    }
-    '''
-    data = request.get_json()
-    name = data['name']
-    area = data['area']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-    cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = "update mission_published set status='finished' where name='{}' and area='{}'".format(name,area)
-    try:
-        cursor.execute(sql)
-        db.commit()
-        cursor.close()
-        db.close()
-        return jsonify("Success!"), 200
-    except Exception as e:
-        return jsonify(e), 500
 
 @app.route("/Check/SubmittedProof",methods=['GET'])
 def CSP():
