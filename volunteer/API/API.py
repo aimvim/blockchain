@@ -91,10 +91,10 @@ def MS():
     try:
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s LIMIT %s, 4'
-            cursor.execute(sql, (f'{user_id}%', offset))
+            cursor.execute(sql, (f'%{user_id}%', offset))
             result = cursor.fetchall()
             count_sql = 'SELECT COUNT(*) AS num FROM mission_published WHERE volunteer LIKE %s'
-            cursor.execute(count_sql, (f'{user_id}%',))
+            cursor.execute(count_sql, (f'%{user_id}%',))
             num = cursor.fetchone()['num']
             if not result:
                 result = [{'num': num}]
@@ -126,11 +126,11 @@ def CMF():
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     try:
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
-            sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s and status="finished" LIMIT %s, 4'
-            cursor.execute(sql, (f'{user_id}%', offset))
+            sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s and status="finished" and id in (select id from proof_table where uploader = %s) LIMIT %s, 4'
+            cursor.execute(sql, (f'%{user_id}%',user_id,offset))
             result = cursor.fetchall()
-            count_sql = 'SELECT COUNT(*) AS num FROM mission_published WHERE volunteer LIKE %s and status="finished"'
-            cursor.execute(count_sql, (f'{user_id}%',))
+            count_sql = 'SELECT COUNT(*) AS num FROM mission_published WHERE volunteer LIKE %s and status="finished" and id in (select id from proof_table where uploader = %s)'
+            cursor.execute(count_sql, (f'%{user_id}%',user_id))
             num = cursor.fetchone()['num']
             if not result:
                 result = [{'num': num}]
@@ -180,15 +180,13 @@ def STX():
     '''
     page = request.get_json()['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-    cursor = db.cursor()
+    cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from transaction where onchain="not" limit {},6;'.format(6 * (page - 1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.execute('select count(*) as num from transaction where onchain="not"'.format(
-                id))
+        cursor.execute('select count(*) as num from transaction where onchain="not"')
         num = cursor.fetchone()['num']
-        print(num)
         if result == ():
             response = [{'num': num}]
             return jsonify(response)
@@ -211,46 +209,57 @@ def TxPublish():
     "private_key":,
     "sender_adress":,
     "amount":,
+    "recipient":,
     "Fees":
     }
     :return:
     '''
     value = request.get_json()#得到表单中的数据
-    sk = binascii.unhexlify(value['private_key'])
+    sk = binascii.unhexlify(value['private_key']) #这里将私钥做成字节串格式
     pk = GenPk(sk) # 生成公钥
     #现在生成的sk与pk都是字节串格式
+    pk = binascii.hexlify(pk).decode()
+    print(sk)
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
-    cursor = db.cursor()
+    cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select adress from pkadress where adress="{}"'.format(value['sender_adress'])
     sql1 = 'select adress from pkadress where adress="{}"'.format(value['recipient'])
-    cursor.execute(sql)
-    result1 = cursor.fetchone()
-    cursor.execute(sql1)
-    result2 = cursor.fetchone()
-    if (result1 or result2) == None:
-        cursor.close()
-        db.close()
-        return "Account Not Exist!"
-    else:
-        sql2 = 'select tx_nonce from pkadress where adress="{}"'.format(value['sender_adress'])
+    #检验私钥是否正确
+    sql2= 'select pk from pkadress where adress="{}"'.format(value['sender_adress'])
+    try:
+        cursor.execute(sql)
+        result1 = cursor.fetchone()
+        cursor.execute(sql1)
+        result2 = cursor.fetchone()
         cursor.execute(sql2)
-        tx_nonce = cursor.fetchone()[0]
-        data = {
-            "inputs": {
-                "sender_adress": value['sender_adress'],
-                "tx_nonce":tx_nonce+1,
-            },
-            "outputs": {
-                "amount": value['amount'],
-                "recipient":value['recipient'],
-                "Fees":value['Fees']
+        result3=cursor.fetchone()
+        result3 = result3['pk']
+        if result1 == None or result2 == None or result3 != pk:
+            cursor.close()
+            db.close()
+            return "Account Not Exist!"
+        else:
+            sql2 = 'select tx_nonce from pkadress where adress="{}"'.format(value['sender_adress'])
+            cursor.execute(sql2)
+            tx_nonce = cursor.fetchone()['tx_nonce']
+            data = {
+                "inputs": {
+                    "sender_adress": value['sender_adress'],
+                    "tx_nonce": tx_nonce+1 ,
+                },
+                "outputs": {
+                    "amount": value['amount'],
+                    "recipient": value['recipient'],
+                    "Fees": value['Fees']
+                }
             }
-        }
-        Sig = GenSig(sk,str(data))
-        cursor.close()
-        db.close()
-        return jsonify(Sig),200
-
+            print(str(data))
+            Sig = GenSig(sk, str(data))
+            cursor.close()
+            db.close()
+            return jsonify(Sig), 200
+    except Exception as e:
+        return jsonify(str(e)),500
 #发布交易，将交易加入数据库
 
 @app.route("/TXPublish", methods=['GET'])
@@ -376,13 +385,21 @@ def SMB():
     page=data['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql="SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE '{}%' and onchain='not' limit {},4".format(address,4*page-4)
+    sql="SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE '%{}%' and onchain='not' limit {},4".format(address,4*page-4)
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.close()
-        db.close()
-        return jsonify(result),200
+        cursor.execute("select count(*) as num FROM transaction WHERE miner LIKE '%{}%' and onchain='not'".format(address))
+        num = cursor.fetchone()['num']
+        print(num)
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
     except Exception as e:
         return jsonify(str(e)), 500
 
@@ -406,7 +423,7 @@ def TxRoot():
     id = request.get_json()['id']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = "SELECT * FROM transaction WHERE miner LIKE '{}%'".format(id)
+    sql = "SELECT * FROM transaction WHERE miner LIKE '%{}%'".format(id)
     cursor.execute(sql)
     result = cursor.fetchall()
     print(result)
@@ -445,6 +462,10 @@ def TxRoot():
 def version():
     return "1.0"
 
+@app.route("/chain")#该API可以直接访问所有区块
+def chain():
+    return jsonify(blockchain.blockchain),200
+
 @app.route("/mine",methods=['GET'])#最后了宝贝
 def mine():
     ''''
@@ -459,88 +480,97 @@ def mine():
     "target":1
     }}
     '''
-    data = request.get_json()
-    indexx = data['blockheader']['index']
-    version = data['blockheader']['version']
-    prehash = data['blockheader']['prehash']
-    nonce = data['blockheader']['nonce']
-    merkle_root = data['blockheader']['merkle_root']
-    target = data['blockheader']['target']
-    tx = []
-    id = data['id']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-    cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE "{}%"'.format(id)
-    cursor.execute(sql)
-    result = cursor.fetchall()
-    index = 1
-    for data in result:
-        cursor.execute('SELECT tx_nonce FROM transaction WHERE senderadress=%s', (data['senderadress'],))
-        tx_nonce_row = cursor.fetchone()
-        tx_nonce = tx_nonce_row['tx_nonce']
-        response = {
-            "index": indexx,
-            "data": {
-                "inputs": {
-                    "sender_adress": data['senderadress'],
-                    "tx_nonce": tx_nonce
+    try:
+        data = request.get_json()
+        indexx = data['blockheader']['index']
+        version = data['blockheader']['version']
+        prehash = data['blockheader']['prehash']
+        nonce = data['blockheader']['nonce']
+        merkle_root = data['blockheader']['merkle_root']
+        target = data['blockheader']['target']
+        tx = []
+        id = data['id']
+        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        cursor = db.cursor(pymysql.cursors.DictCursor)
+        sql = 'select signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE "%{}%"'.format(id)
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        print(result)
+        index = 1
+        for data in result:
+            cursor.execute('SELECT tx_nonce FROM transaction WHERE senderadress=%s', (data['senderadress'],))
+            tx_nonce_row = cursor.fetchone()
+            tx_nonce = tx_nonce_row['tx_nonce']
+            print(tx_nonce)
+            response = {
+                "index": index,
+                "data": {
+                    "inputs": {
+                        "sender_adress": data['senderadress'],
+                        "tx_nonce": tx_nonce
+                    },
+                    "outputs": {
+                        "amount": data['amount'],
+                        "recipient": data['recipient'],
+                        "Fees": data['fees']
+                    }
                 },
-                "outputs": {
-                    "amount": data['amount'],
-                    "recipient": data['recipient'],
-                    "Fees": data['fees']
-                }
+                "signature": data["signature"]
+            }
+            index = index + 1
+            tx.append(response)
+        block = {
+            "blockheader": {
+                "version": version,
+                "prehash": prehash,
+                "index": indexx,
+                "nonce": nonce,
+                "merkle_root": merkle_root,
+                "target": target
             },
-            "signature": data["signature"]
-        }
-        index = index + 1
-        tx.append(response)
-    block = {
-    "blockheader":{
-    "version":version,
-    "prehash":prehash,
-    "index":index,
-    "nonce":nonce,
-    "merkle_root":merkle_root,
-    "target":target
-    },
-    "block":tx}
-    if blockchain.TheBlokCheck(block):
-        # 格式确认
-        if blockchain.add_block(block):
-            # 区块确认
-            #上链成功后实现所有的交易，并且实现出块奖励
-            msg = "挖矿成功"
-            print(msg)
-            #实现交易
-            for data in result:
-                senderadress = data['senderadress']
-                recipient = data['recipient']
-                amount = data['amount']
-                fees = data['fees']
-                signature = data['signature']
-                cursor.execute('update transaction set onchain="yes" where signature=%s',(signature))
+            "block": tx}
+        if blockchain.TheBlokCheck(block):
+            # 格式确认
+            print("1")
+            if blockchain.add_block(block):
+                # 区块确认
+                # 上链成功后实现所有的交易，并且实现出块奖励
+                msg = "挖矿成功"
+                print(msg)
+                # 实现交易
+                for data in result:
+                    senderadress = data['senderadress']
+                    recipient = data['recipient']
+                    amount = data['amount']
+                    fees = data['fees']
+                    signature = data['signature']
+                    cursor.execute('update transaction set onchain="yes" where signature=%s', (signature))
+                    db.commit()
+                    cursor.execute('select amount from pkadress where adress=%s', (senderadress))
+                    ramount = cursor.fetchone()['amount']
+                    cursor.execute('update pkadress set amount={} where adress="{}"'.format(ramount - amount - fees, senderadress))
+                    db.commit()
+                    cursor.execute('select amount from pkadress where adress=%s', (recipient))
+                    rpamount = cursor.fetchone()['amount']
+                    cursor.execute(
+                        'update pkadress set amount={} where adress="{}"'.format(rpamount + amount + fees, recipient))
+                    db.commit()
+                    cursor.execute('select amount from pkadress where adress=%s', (id))
+                    mamount = cursor.fetchone()['amount']
+                    cursor.execute('update pkadress set amount = {} where adress="{}"'.format(mamount + fees, id))
+                # 实现出块奖励
+                cursor.execute(
+                    'insert into transaction(`signature`,`senderadress`,`amount`,`fees`,`recipient`,`tx_nonce`) value("{}","{}",{},{},"{}",{})'.format(
+                        "system", "system", 9.9, 0.1, id, 0))
                 db.commit()
-                cursor.execute('select amount from pkadress where adress=%s',(senderadress))
-                ramount = cursor.fetchone()['amount']
-                cursor.execute('update pkadress set amount={} where adress="{}"'.format(ramount-amount-fees,senderadress))
-                db.commit()
-                cursor.execute('select amount from pkadress where adress=%s', (recipient))
-                rpamount= cursor.fetchone()['amount']
-                cursor.execute('update pkadress set amount={} where adress="{}"'.format(rpamount + amount + fees, recipient))
-                db.commit()
-                cursor.execute('select amount from pkadress where adress=%s',(id))
-                mamount=cursor.fetchone()['amount']
-                cursor.execute('update pkadress set amount = {} where adress="{}"'.format(mamount+fees,id))
-            #实现出块奖励
-            cursor('insert into transaction(`signature`,`senderadress`,`amount`,`fees`,`recipient`,`tx_nonce`) value("{}","{}",{},{},"{}",{})'.format("system","system",9.9,0.1,id,0))
-            db.commit()
-            return jsonify("Success"), 200
+                return jsonify("Success"), 200
+            else:
+                msg = "错误区块"
+                return msg, 200
         else:
-            msg = "错误区块"
-            return msg, 200
-    else:
-        return "区块格式错误", 200
+            return "区块格式错误", 200
+    except Exception as e:
+        return jsonify(str(e)),500
 
 #下面这个api作用是查找交易信息
 @app.route("/TxInfo",methods=['GET'])
@@ -587,25 +617,6 @@ def AcCreate():
 def lll():
     data = request.get_json()
     return jsonify(data)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #这里不同纯粹是数据类型的问题
 tx= [{

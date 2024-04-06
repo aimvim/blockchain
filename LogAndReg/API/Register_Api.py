@@ -1,6 +1,9 @@
 import hashlib
 from flask import Flask, request, jsonify
 import pymysql
+from LogAndReg.functions.Account import *
+from LogAndReg.functions.blockchain import *
+
 
 app = Flask(__name__)
 
@@ -117,6 +120,9 @@ def user_register():
         try:
             cursor.execute(sql)
             db.commit()
+            sk = GenSk()
+            pk = GenPk(sk)
+            adress = AdCre(sk,volunteer_register['id'])
             cursor.close()
             db.close()
             return "注册成功", 200

@@ -142,7 +142,7 @@ def publishMission():
         db.commit()
         cursor.close()
         db.close()
-        return jsonify({"message": "Mission published successfully"}), 200
+        return jsonify({"message": "Mission published successfully"},value), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

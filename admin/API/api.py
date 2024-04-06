@@ -339,10 +339,19 @@ def PP():
             cursor.execute(sql, (mission_id,))
             uploader = cursor.fetchone()['uploader']
             print(uploader)
-
+            sql = 'select adress from pkadress where id="{}"'.format(uploader)
+            print(sql)
+            cursor.execute(sql)
+            uploader = cursor.fetchone()['adress']
             # 插入交易记录
+            sql = 'select signature from pkadress where id = "{}"'.format(mission_id)
+            cursor.execute(sql)
+            sig = cursor.fetchone()['signature']
+            sql = 'select senderadress from pkadress where id = "{}"'.format(mission_id)
+            cursor.execute(sql)
+            sed = cursor.fetchone()['senderadress']
             sql = 'INSERT INTO transaction VALUES(%s, %s, %s, %s, %s, %s, %s, %s)'
-            cursor.execute(sql, ("system", "system", amount-0.1, 0.1, uploader, None, "not", 0))
+            cursor.execute(sql, (sig, sed, amount-0.1, 0.1, uploader, "not", None, 0))
             db.commit()
     except Exception as e:
         return jsonify(str(e)), 500

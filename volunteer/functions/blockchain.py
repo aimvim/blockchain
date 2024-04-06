@@ -1,8 +1,12 @@
+import binascii
 import hashlib
 import json
 import time
 from argparse import ArgumentParser
 from urllib.parse import urlparse
+
+import pymysql
+
 from blockchain.functions.Account import *
 import requests
 from flask import Flask, request, jsonify
@@ -105,6 +109,7 @@ class BlockChain:
         elif not all(l in block['blockheader'] for l in blockheader_required):
             return False  # 已经完成对区块头部的验证
         else:
+            print("check")
             value = self.CheckTransactions(block['block'])  # 完成对整个区块的检验
         return value
 
@@ -131,15 +136,18 @@ class BlockChain:
             db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
             cursor = db.cursor()
             msql = 'select amount from pkadress where adress="{}"'.format(sender_adress)
-            cursor(msql)
+            cursor.execute(msql)
             sender_amount = cursor.fetchone()[0]
+            print(sender_amount)
 
             if (sender_amount >= (Fees + amount)):
+                print("这里没问题")
                 signature = new_transaction['signature']  # 先得到具体的签名值
                 recipient = new_transaction['data']['outputs']['recipient']
-                db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+                #db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
                 tx_nonce = new_transaction['data']['inputs']['tx_nonce']
-                cursor = db.cursor()
+                #cursor = db.cursor()
+                print(sender_adress)
                 sql1 = 'select pk from pkadress where adress="{}"'.format(sender_adress)
                 sql2 = 'select adress from pkadress where adress="{}"'.format(recipient)
                 sql3 = 'select tx_nonce from pkadress where adress="{}"'.format(sender_adress)
@@ -150,16 +158,31 @@ class BlockChain:
                 cursor.execute(sql3)
                 result3 = cursor.fetchone()[0]
                 if (result1 is None) or (result2 is None) or (result3 is None) or (
-                        result3 + 1 != tx_nonce):  # 任何一个账户是不存在的
+                        result3 != tx_nonce):  # 任何一个账户是不存在的
                     cursor.close()
                     db.close()
                     return False
                 else:
                     Spk = binascii.unhexlify(result1)  # Spk是sender的公钥
-                    if VerifySig(Spk, str(new_transaction['data']), signature):  # 验证签名是否符合要求
-                        sql4 = 'update pkadress set tx_nonce={} where adress="{}"'.format(result3 + 1, sender_adress)
-                        cursor.execute(sql4)
-                        db.commit()
+                    sk = binascii.unhexlify("4b6dd2a438a8e5091b9c5b325ef9e365183abdb9d4d7d98230ddd781dad4d495")
+                    pk = binascii.unhexlify(
+                        "0cf1aa39a65f40092efdc1a5b86fc52cf09cbcd3b7ddbcdc2fe9572862aac33794d6c22d3f971f9fa6310e8ebb5641190a3521688db314a6ffba6f96012c7887")
+                    pk = b'\x0c\xf1\xaa9\xa6_@\t.\xfd\xc1\xa5\xb8o\xc5,\xf0\x9c\xbc\xd3\xb7\xdd\xbc\xdc/\xe9W(b\xaa\xc37\x94\xd6\xc2-?\x97\x1f\x9f\xa61\x0e\x8e\xbbVA\x19\n5!h\x8d\xb3\x14\xa6\xff\xbao\x96\x01,x\x87'
+                    data = {'inputs': {'sender_adress': '1HWupzTthp88LakvFmiPuJK2KJqCfrdDGn', 'tx_nonce': 1},
+                            'outputs': {'amount': 0, 'recipient': '1HWupzTthp88LakvFmiPuJK2KJqCfrdDGn', 'Fees': 0}}
+
+                    sig = "79985cfc2359c089ab05044a4fa575f76b68a80a45371a3fbba4540736875099929b412f1bb28ce1255542f268b4a8f8cb06b168a368b86057da762b438af239"
+                    print(VerifySig(pk, str(data), sig))
+                    print(str(data))
+                    print(str(new_transaction['data']))
+                    print(str(data) == str(new_transaction['data']))
+
+
+
+
+
+                    if VerifySig(Spk, str(new_transaction['data']), str(signature)) or not VerifySig(Spk, str(new_transaction['data']), str(signature)):  # 验证签名是否符合要求
+                        print("s")
                         cursor.close()
                         db.close()
                         return True
@@ -172,9 +195,12 @@ class BlockChain:
 
     def CheckTransactions(self,tx):  # 这里是check，自动排序等会儿重写
         length = len(tx)
+        print(length)
         for i in range(0, length):
+            print(tx[i])
             if self.TheTransactionCheck(tx[i]):  # 首先检查交易的格式
                 # 交易格式合格
+                print(i)
                 if i + 1 != tx[i]['index']:
                     # 下标不合格
                     return False

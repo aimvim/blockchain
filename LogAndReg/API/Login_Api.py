@@ -74,7 +74,7 @@ def volunteerlogin():
         cursor.execute(sql)
         result = cursor.fetchone()
     except Exception as e:
-        return jsonify(e),500
+        return jsonify(str(e)),500
     if result == None:
         return "Id not exist",400
     else:
