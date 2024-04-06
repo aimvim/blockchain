@@ -1,8 +1,8 @@
 import hashlib
 from flask import Flask, request, jsonify
 import pymysql
-from LogAndReg.functions.Account import *
-from LogAndReg.functions.blockchain import *
+from LogAndReg.functions_OL.Account import *
+from LogAndReg.functions_OL.blockchain import *
 
 
 app = Flask(__name__)
