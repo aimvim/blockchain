@@ -38,8 +38,7 @@
             <el-menu active-text-color="#303133" background-color="#fff" @select="handleSelect2"
                      text-color="#1b1c1f" class="taskMenu" :default-active="taskMenu">
               <el-menu-item index='1'>已发布</el-menu-item>
-              <el-menu-item index='2'>进行中</el-menu-item>
-              <el-menu-item index='3'>已完成</el-menu-item>
+              <el-menu-item index='2'>已完成</el-menu-item>
             </el-menu>
           </div>
         </el-aside>
@@ -51,17 +50,17 @@
           <div v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
                   element-loading-svg-view-box="-10, -10, 50, 50" element-loading-background="rgba(122, 122, 122, 0.8)" style="width: 66.15vw; margin-top: 5px">
             <div style="display: flex">
-              <Detail :index="curIndex"/>
-              <Detail :index="curIndex"/>
+              <Detail :detail="detailData[0]"/>
+              <Detail :detail="detailData[1]"/>
             </div>
             <div style="display: flex">
-              <Detail :index="curIndex"/>
-              <Detail :index="curIndex"/>
+              <Detail :detail="detailData[2]"/>
+              <Detail :detail="detailData[3]"/>
             </div>
           </div>
           <div style="text-align: center; display: flex">
             <span style="margin-top: 2vh; margin-left: 20vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
-            <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="load" :total="total"></el-pagination>
+            <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="change" :total="total"></el-pagination>
           </div>
           <el-dialog width="30%" v-model="openTask" title="发布任务" :close-on-click-modal="false" :onClose="close">
             <div class="dialog">
@@ -74,20 +73,27 @@
                     <el-form-item label="活动区域" prop="location">
                       <el-input v-model="form.location" placeholder="请输入" clearable/>
                     </el-form-item>
-                    <el-form-item label="活动时间" prop="time">
+                    <el-form-item label="起止时间" prop="time">
                       <el-date-picker v-model="form.time" type="datetimerange" format="YYYY-MM-DD HH:mm"
                                       start-placeholder="Start Time" end-placeholder="End Time" :default-time="defaultTime"/>
                     </el-form-item>
                   </el-col>
                 </el-row>
+                <el-form-item label="活动时长" prop="duration">
+                  <el-input-number v-model.number="form.duration" :precision="1" :step="0.5" :max="24" type="number" step-strictly /> &nbsp;&nbsp; 小时
+                </el-form-item>
+                <el-form-item label="活动奖励" prop="award">
+                  <el-input-number v-model.number="form.award" :precision="2" :step="0.5" :max="100" type="number" /> &nbsp;&nbsp; 时间币
+                </el-form-item>
                 <el-row>
                   <el-col :span="16">
-                    <el-form-item label="性质" prop="trait"> <el-checkbox-group v-model="form.trait">
-                      <el-checkbox label="文本 1" value="111"/>
-                      <el-checkbox label="文本 2" value="222"/>
-                      <el-checkbox label="文本 3" value="333"/>
-                      <el-checkbox label="文本 4" value="444"/>
-                    </el-checkbox-group>
+                    <el-form-item label="性质" prop="trait">
+                      <el-radio-group v-model="form.trait">
+                        <el-radio label="文本 1" :value="0"/>
+                        <el-radio label="文本 2" :value="1"/>
+                        <el-radio label="文本 3" :value="2"/>
+                        <el-radio label="文本 4" :value="3"/>
+                      </el-radio-group>
                     </el-form-item>
                   </el-col>
                 </el-row>
@@ -120,6 +126,8 @@
   import {Search} from "@element-plus/icons-vue"
   import Detail from "./Detail.vue"
   import axios from "axios";
+  import {ElMessage} from "element-plus";
+  import router from "@/router";
 
   const menu = ref("1")
   const identity = localStorage.getItem('identity')
@@ -128,7 +136,7 @@
   const taskMenu = ref('1')
   const search = ref("")
   const loading = ref(false)
-  const total = ref(6532)
+  const total = ref(1)
   const curIndex = ref('1')
   const openTask = ref(false)
   const fullscreenLoading = ref(false)
@@ -137,9 +145,11 @@
   const form = reactive({
     name: "",
     location: "",
-    time: "",
+    time: [],
     trait: [],
-    description: ""
+    description: "",
+    duration: 0,
+    award: 0
   })
   const defaultTime = new Date(2000, 1, 1, 8, 0, 0)
   const rules = reactive({
@@ -157,6 +167,14 @@
     ],
     description: [
       {required: true, message: "请输入描述", trigger: "blur"}
+    ],
+    award: [
+      {required: true, message: "请输入描述", trigger: "blur", type: "number"},
+      {min: 0.01, message: "请输入活动奖励", trigger: "blur", type: "number"}
+    ],
+    duration: [
+      {required: true, message: "请输入活动时长", trigger: "blur", type: "number"},
+      {min: 0.5, message: "请输入活动时长", trigger: "blur", type: "number"}
     ]
   })
   const svg = `
@@ -169,10 +187,56 @@
           L 15 15
         " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
       `
+  let detailData = reactive([
+    {
+      activitytime: 0.,
+      area: "",
+      award: 0.,
+      begintime: "",
+      checked: "",
+      details: "",
+      endtime: "",
+      id: 0,
+      mcharacter: "",
+      name: "",
+      status: "",
+      uploader: "",
+      uploader_company: ""
+    },
+  ])
+  const map = ["ABCD", "EFGH", "IJKL", "MNOP"]
+
+  const createDetailData = () => [{
+    activitytime: 0.,
+    area: "",
+    award: 0.,
+    begintime: "",
+    checked: "",
+    details: "",
+    endtime: "",
+    id: 0,
+    mcharacter: "",
+    name: "",
+    status: "",
+    uploader: "",
+    uploader_company: ""
+  }]
 
   const handleSelect2 = (index: string) => {
-    console.log(index)
-    curIndex.value = index
+    if (index === '1') {
+      load1()
+    } else {
+      load2()
+    }
+  }
+
+  function change(val: number) {
+    curPage.value = val
+    if (curIndex.value === '1') {
+      load1()
+    } else {
+      load2()
+    }
   }
 
   function reset() {
@@ -187,19 +251,64 @@
   function save() {
     formRef.value.validate((valid) => {
       if (valid) {
+        let time0 = form.time[0].toLocaleString().replaceAll('/', '-').split('-')
+        if (time0[1].length === 1) {
+          time0[1] = '0' + time0[1]
+        }
+        if (time0[2].length === 1) {
+          time0[2] = '0' + time0[2]
+        }
+        let time1 = form.time[1].toLocaleString().replaceAll('/', '-').split('-')
+        if (time1[1].length === 1) {
+          time1[1] = '0' + time1[1]
+        }
+        if (time1[2].length === 1) {
+          time1[2] = '0' + time1[2]
+        }
+        form.time[0] = time0.join('-').slice(0, 16) + ":00"
+        form.time[1] = time1.join('-').slice(0, 16) + ":00"
+
         ElMessageBox.confirm(
-            '是否确认发布任务？',
-            'Warning',
-            {
-              confirmButtonText: 'OK',
-              cancelButtonText: 'Cancel',
-              type: 'warning',
-            }
+          '是否确认发布任务？',
+          'Warning',
+          {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }
         ).then(() => {
-          // TODO: 提交表单
-          ElMessage({
-            type: 'success',
-            message: '发布成功，待审核',
+          fullscreenLoading.value = true
+          axios.post('http://localhost:5000/Publish/Mission', {
+            name: form.name,
+            area: form.location,
+            begintime: form.time[0],
+            endtime: form.time[1],
+            mcharacter: map[form.trait],
+            activitytime: form.duration,
+            details: form.description,
+            award: form.award,
+            id: username
+          }).then(res => {
+            fullscreenLoading.value = false
+            if (res.status === 200) {
+              openTask.value = false
+              router.push('/home')
+              ElMessage({
+                type: 'success',
+                message: '发布成功，待审核',
+              })
+            } else {
+              ElMessage({
+                type: 'error',
+                message: '发布失败',
+              })
+            }
+          }).catch(() => {
+            ElMessage({
+              type: 'error',
+              message: '发布失败',
+            })
+            fullscreenLoading.value = false
           })
         }).catch(() => {
           ElMessage({
@@ -211,22 +320,62 @@
     })
   }
 
-  function load() {
+  function load1() {
     loading.value = true
-    axios.get('http://localhost:5000/PublishedMission', {
-      params: {
-        page: curPage,
-        id: username
-      }
+    axios.post('http://localhost:5000/PublishedMission', {
+      page: curPage.value,
+      id: username
     }).then(res => {
-      // TODO: 更新数据
-      console.log(res.data)
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function load2() {
+    loading.value = true
+    axios.post('http://localhost:5000/FinishedMission', {
+      page: curPage.value,
+      id: username
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
       loading.value = false
     })
   }
   // TODO：查询，任务详情，发布任务，交互信息，分页
 
-  load()
+  load1()
 
 </script>
 

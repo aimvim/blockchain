@@ -9,7 +9,7 @@ import pymysql
 app = Flask(__name__)
 
 CORS(app)
-@app.route("/PublishedMission",methods=['GET'])
+@app.route("/PublishedMission",methods=['POST'])
 def PM():
     #针对传入信息
     '''
@@ -22,14 +22,15 @@ def PM():
     #完成对分页的要求
     '''此处返回的类型为list类型'''
     data = request.get_json()
+    print(data)
     page = data['page']
-    db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
+    db = pymysql.connect(host="localhost",user="root",passwd="Wu_CRH.0523",port=3306,db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where uploader ="{}" and checked="yes" limit {},4;'.format(data['id'],4*(page-1))
+    sql = 'select * from mission_published where uploader ="{}" limit {},4;'.format(data['id'],4*(page-1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.execute('select count(*) as num from mission_published where uploader=%s and checked="yes"',(data['id']))
+        cursor.execute('select count(*) as num from mission_published where uploader=%s',(data['id']))
         num = cursor.fetchone()['num']
         print(num)
         if result == ():
@@ -39,10 +40,11 @@ def PM():
             result.append({"num": num})
             cursor.close()
             db.close()
+            print(result)
             return jsonify(result),200#返回消息的全部信息
     except Exception as e:
         return jsonify(e),500
-@app.route("/FinishedMission", methods=['GET'])
+@app.route("/FinishedMission", methods=['POST'])
 def FM():
     # 针对传入信息
     '''
@@ -55,7 +57,7 @@ def FM():
     # 完成对分页的要求
     data = request.get_json()
     page = data['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql1  = "select * from mission_published where status = 'finished' and uploader ='{}' limit {},4".format(data['id'],4*page-4)
     try:
@@ -76,7 +78,7 @@ def FM():
         return jsonify(str(e)), 500
 
 
-@app.route("/select", methods=['GET'])
+@app.route("/select", methods=['POST'])
 def select():
     '''
     输入格式为
@@ -89,7 +91,7 @@ def select():
     input_value = data['input']
     try:
         # 尝试连接数据库
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = 'SELECT * FROM mission_published WHERE name="{}" and uploader="{}";'.format(input_value,data['id'])
         # 尝试执行SQL查询
@@ -105,7 +107,7 @@ def select():
         # 处理数据库连接错误或查询错误
         return jsonify({"error": str(e)}), 400
 
-@app.route("/Publish/Mission",methods=['GET'])
+@app.route("/Publish/Mission",methods=['POST'])
 def publishMission():
     '''
     得到的文件格式为
@@ -122,7 +124,7 @@ def publishMission():
     }
     '''
     value = request.get_json()
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor()
     sql = 'select register_code from userinfo where id ="{}"'.format(value['id'])
     try:

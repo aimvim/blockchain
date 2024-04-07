@@ -7,21 +7,20 @@
 -->
 <template>
   
-    <div class="task">
+    <div class="task" v-if="detail !== undefined && detail.activitytime !== undefined">
       <div class="title">
-        <span style="font-size: 1.5vw; font-family: '黑体'; margin-top: 10px; width: 15vw">任务名称任务名称</span>
-        <span class="time-loc">2024-04-12 <br> 四川省成都市成华区</span>
+        <span style="font-size: 1.5vw; font-family: '黑体'; margin-top: 10px; width: 15vw">{{ detail.name }}</span>
+        <span class="time-loc">{{ time }} <br> {{ detail.area }}</span>
       </div>
       <div class="h-separate"></div>
       <div class="text" id="text"> <!-- 时间地点描述要传过来 -->
-        <span style="height: auto;">活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述活动描述。</span>
+        <span style="height: auto;">{{ detail.details }}</span>
       </div>  
 
         <div style="display: flex; flex-wrap: nowrap; margin-bottom: 2.6vh; align-items: center; justify-content: space-between">
-          <div class="condition" style="color: rgb(120, 120, 120); border: rgb(120, 120, 120) solid 1px;" v-if="index === '1'">待接取</div>
-          <div class="condition" v-if="index === '2'">进行中</div>
-          <div class="condition" style="color: rgb(230, 136, 100); border: rgb(230, 136, 100) solid 1px;" v-if="index === '3' && pass === false">未通过</div>
-          <div class="condition" style="color: rgb(102, 183, 153); border: rgb(102, 183, 153) solid 1px;" v-if="index === '3' && pass === true">已通过</div>
+          <div class="condition" style="color: rgb(120, 120, 120); border: rgb(120, 120, 120) solid 1px;" v-if="detail.checked === 'not'">待审核</div>
+          <div class="condition" style="color: rgb(230, 136, 100); border: rgb(230, 136, 100) solid 1px;" v-if="detail.checked === 'yes' && detail.status === 'not finished'">未完成</div>
+          <div class="condition" style="color: rgb(102, 183, 153); border: rgb(102, 183, 153) solid 1px;" v-if="detail.checked === 'yes' && detail.status === 'finished'">已完成</div>
           <el-button class="detail" @click="dialog = true">查看详情</el-button>
         </div>
       
@@ -32,12 +31,36 @@
 
 <script setup lang="ts" name="Detail">
   import { DCaret } from "@element-plus/icons-vue";
-import {defineProps, reactive, ref} from "vue"
+  import {defineProps, reactive, ref, toRefs, watch} from "vue"
 
-  const pass = ref(true)
+  const time = ref("")
   const dialog = ref(false)
 
-  const { index } = defineProps(['index']);
+  const tmp = defineProps(['detail']);
+  const { detail } = toRefs(tmp)
+
+  watch(() => detail?.value, (newVal, oldVal) => {
+    if (detail?.value !== undefined && detail.value.begintime !== undefined) {
+      let tmp = detail.value.begintime.split(' ')
+      tmp[0] = tmp[0].slice(0, 3)
+      const tmp0 = tmp[1]
+      tmp[1] = tmp[2]
+      tmp[2] = tmp0
+      tmp[tmp.length - 1] += '+0800'
+      time.value = new Date(tmp.join(' ')).toLocaleString().replaceAll('/', '-').slice(0, 10)
+      tmp = time.value.split('-')
+      if (tmp[1].length === 1) {
+        tmp[1] = '0' + tmp[1]
+      }
+      if (tmp[2].length === 1) {
+        tmp[2] = '0' + tmp[2]
+      }
+      time.value = tmp.join('-')
+    }
+  })
+
+
+
 
 </script>
 
@@ -49,8 +72,6 @@ import {defineProps, reactive, ref} from "vue"
     height: 25.74vh;
     border-radius: 7px;
     padding: 10px;
-    
-    
   }
   .title {
     margin-top: 8px;
@@ -59,12 +80,13 @@ import {defineProps, reactive, ref} from "vue"
   }
 
   .time-loc {
-    font-size: clamp(1vw,1.2vw,12px);
+    font-size: clamp(1vw, 1.2vw, 12px);
     color: rgb(120, 120, 120);
     margin-left: 3vw;
     line-height: 2vw;
-    white-space:nowrap;
+    white-space: nowrap;
     text-align: right;
+    width: 8.4vw;
   }
 
   .h-separate {
@@ -94,9 +116,8 @@ import {defineProps, reactive, ref} from "vue"
   }
 
   .condition {
-    
-    margin-top:0;
-    flex-basis:80px;
+    margin-top: 0;
+    flex-basis: 80px;
     margin-left: 8px;
     font-size: 14px;
     text-align: center;
