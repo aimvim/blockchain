@@ -246,7 +246,7 @@ import router from "@/router";
     border: 0;
     background: rgba(255, 255, 255, 0.4);
     line-height: 6.944vh;
-    width: 8.819vw;
+    width: 8.8vw;
     height: 6.944vh;
     font-size: 18px;
     color: white;

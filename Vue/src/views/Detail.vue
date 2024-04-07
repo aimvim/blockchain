@@ -21,7 +21,7 @@
           <div class="condition" style="color: rgb(120, 120, 120); border: rgb(120, 120, 120) solid 1px;" v-if="detail.checked === 'not'">待审核</div>
           <div class="condition" style="color: rgb(230, 136, 100); border: rgb(230, 136, 100) solid 1px;" v-if="detail.checked === 'yes' && detail.status === 'not finished'">未完成</div>
           <div class="condition" style="color: rgb(102, 183, 153); border: rgb(102, 183, 153) solid 1px;" v-if="detail.checked === 'yes' && detail.status === 'finished'">已完成</div>
-          <el-button class="detail" @click="dialog = true">查看详情</el-button>
+          <el-button class="detail" @click="showDetail">查看详情</el-button>
         </div>
       
     </div>
@@ -34,8 +34,6 @@
   import {defineProps, reactive, ref, toRefs, watch} from "vue"
 
   const time = ref("")
-  const dialog = ref(false)
-
   const tmp = defineProps(['detail']);
   const { detail } = toRefs(tmp)
 
@@ -58,9 +56,16 @@
       time.value = tmp.join('-')
     }
   })
+// TODO
+function showDetail(){
+    if (index==="1") {
+            window.location.href='./mTaskAudit';
+        }
+    if (index!="1") {
+      window.location.href='./taskDetail';
 
-
-
+    }
+  }
 
 </script>
 

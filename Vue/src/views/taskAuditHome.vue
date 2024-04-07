@@ -9,10 +9,9 @@
             </div>
               <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                        class="menu" mode="horizontal" @select="handleSelect2" :ellipsis="false"> <!-- 菜单激活回调 -->
-                
-                <el-menu-item  index="2" @click="taskAH">任务审核</el-menu-item>
-                <el-menu-item  index="1">账号审核</el-menu-item>
-                
+                <el-menu-item index="1">任务中心</el-menu-item>
+                <el-menu-item v-if="identity === '志愿者'" index="2" @click='dealCommunity'>交易社区</el-menu-item>
+                <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
               </el-menu>
             <el-popover popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="13vw">
               <template #reference>
@@ -20,17 +19,33 @@
                   <el-icon color="#fff" style="margin-left: 13px; margin-top: 11px" size="30px"><UserFilled /></el-icon>
                 </div>
               </template>
-               
+  
+  
+  
               <template #default>
-               
-                <div class="popover">
-                  <span class="pText">用户名：{{ username }}</span>
-                  <br>
-                  <br>
-                  <span class="pText">机构：电子科技大学</span>
+  
+  
+                <div class="popover" id="popover">
+  
+  
+                  <div class="Vaccount ac1"><span class="pText">地址：  {{ address1 }}</span> <br><span class="pText">交易次数:{{ dealtimes1 }}</span><br>
+                    <span>时间币：</span>{{ timeCoin1 }}
+                  </div>
+                  <div class="Vaccount ac2"><span class="pText">地址： {{ address2 }}</span> <br><span class="pText">交易次数:{{ dealtimes2 }}</span><br>
+                    <span>时间币：</span>{{ timeCoin2 }}
+                  </div>
+                  <div class="Vaccount ac3"><span class="pText">地址： {{ address3 }}</span> <br><span class="pText">交易次数:{{ dealtimes3 }}</span><br>
+                    <span>时间币：</span>{{ timeCoin3 }}
+                  </div>
+  
+  
+                  
                 </div>
               </template>
-            </el-popover><!-- 用户icon显示信息 -->
+  
+  
+  
+            </el-popover>
           </div>
         </el-header>
         <div class="h-separate"></div>
@@ -40,8 +55,10 @@
               
               <el-menu active-text-color="#303133" background-color="#fff" @select="handleSelect2"
                        text-color="#1b1c1f" class="taskMenu" :default-active="taskMenu">
-                <el-menu-item index='1'>未审核</el-menu-item>
-                <el-menu-item index='2' @click="passedAccount">已审核</el-menu-item>
+                <el-menu-item index="1">未审核发布</el-menu-item>
+                <el-menu-item index="2">已审核发布</el-menu-item>
+                <el-menu-item index="3">未审核提交</el-menu-item>
+                <el-menu-item index="4">已审核提交</el-menu-item>
               </el-menu>
             </div>
           </el-aside>
@@ -50,44 +67,57 @@
               <el-input v-model="search" style="width: 240px"
                         :prefix-icon="Search" placeholder="请输入" clearable/>
             </div>
-          <div style="display: flex;margin-top: 1vh;">
-            <div class="accountContent">
-            <div class="text" id="username">用户名:</div>
-            <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
-          </div>
-          <div class="accountContent">
-            <div class="text" id="username">用户名:</div>
-            <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
-          </div>
-          </div>
-          <div style="display: flex;margin-top: 1vh;">
-            <div class="accountContent">
-            <div class="text" id="username">用户名:</div>
-            <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
-          </div>
-          <div class="accountContent">
-            <div class="text" id="username">用户名:</div>
-            <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
-          </div>
-          </div>
-
+            <div style="display: flex">
+              <Detail :index="curIndex"/>
+              <Detail :index="curIndex"/>
+            </div>
+            <div style="display: flex">
+              <Detail :index="curIndex"/>
+              <Detail :index="curIndex"/>
+            </div>
             <div style="text-align: center; display: flex">
               <span style="margin-top: 2vh; margin-left: 20vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
               <el-pagination class="pagination" :page-size="4" :pager-count="6" layout="prev, pager, next" :total="total"></el-pagination>
             </div>
-            
+            <el-dialog width="30%" v-model="openTask" title="发布任务" :close-on-click-modal="false" :onClose="close">
+              <div class="dialog">
+                <el-form :model="form" label-width="80px" class="form" label-position="left" ref="formRef" :rules="rules" status-icon>
+                  <el-row>
+                    <el-col :span="20">
+                      <el-form-item label="名称" prop="name">
+                        <el-input v-model="form.name" placeholder="请输入" clearable/>
+                      </el-form-item>
+                      <el-form-item label="活动区域" prop="location">
+                        <el-input v-model="form.location" placeholder="请输入" clearable/>
+                      </el-form-item>
+                      <el-form-item label="活动时间" prop="time">
+                        <el-date-picker v-model="form.time" type="datetimerange" format="YYYY-MM-DD HH:mm"
+                                        start-placeholder="Start Time" end-placeholder="End Time" :default-time="defaultTime"/>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="16">
+                      <el-form-item label="性质" prop="trait"> <el-checkbox-group v-model="form.trait">
+                        <el-checkbox label="文本 1" value="111"/>
+                        <el-checkbox label="文本 2" value="222"/>
+                        <el-checkbox label="文本 3" value="333"/>
+                        <el-checkbox label="文本 4" value="444"/>
+                      </el-checkbox-group>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="20">
+                      <el-form-item label="描述" prop="description">
+                        <el-input v-model="form.description" :autosize="{minRows: 4}" type="textarea" placeholder="请输入" clearable/>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </el-form>
+              </div>
+              
+            </el-dialog>
           </el-main>
         </el-container>
       </el-container>
@@ -148,14 +178,26 @@
       reset()
       openTask.value = false
     }
-
-    function passedAccount() {
-      window.location.href='./passedAccount';
+  
+    
+    //add for new 
+    var address1 ='asdadasdas';
+    var address2 = 'adsasdaqwe';
+    var address3 = 'awdasdwgggg';
+    var dealtimes1 = 222;
+    var dealtimes2 = 333;
+    var dealtimes3 = 123;
+    var timeCoin1 = 2.3;
+    var timeCoin2 = 23.3;
+    var timeCoin3 = 0;
+  
+    var accountNumber = 3;
+    var popover = document.getElementById("popover");
+  
+    function dealCommunity(){
+      window.location.href='vPersonal';
     }
-    function taskAH() {
-      window.location.href='./taskAuditHome';
-    }
-
+    
   </script>
   
   <style scoped>
@@ -167,8 +209,6 @@
       background-clip: text;
       color: transparent;
       font-family: 'siYuanHeavy';
-      white-space:nowrap; 
-      
     }
   
     .menu {
@@ -182,7 +222,12 @@
       font-size: 17px;
       width: 9.32vw;
     }
-
+  
+    .menu .el-menu-item:hover{
+      background-color: rgb(84, 205, 255);
+      color: #fff;
+    }
+  
     .menu .el-menu-item.is-active {
       color: #fff;
       background: #40b9dc;
@@ -213,7 +258,23 @@
       margin-top: 4.91vh;
       margin-left: 7.42vw;
     }
-
+  
+    .openTask {
+      width: 8.29vw;
+      height: 3.98vh;
+      margin-left: 0.8vw;
+      background: linear-gradient(to right bottom, rgb(2, 132, 208), rgb(64, 185, 220));
+      color: white;
+      border-radius: 7px;
+    }
+  
+    .openTask:hover {
+      background: linear-gradient(to right bottom, rgba(2, 132, 208, 0.5), rgba(64, 185, 220, 0.5));
+    }
+  
+    .openTask:active {
+      background: linear-gradient(to right bottom, rgba(2, 132, 208, 0.3), rgba(64, 185, 220, 0.3));
+    }
   
     .taskMenu {
       margin-top: 3.15vh;
@@ -265,55 +326,23 @@
     .popover {
       color: #40b9dc;
       font-size: 16px;
+      
     }
   
     .pText {
       height: 2vh;
       font-family: "黑体";
     }
-    .accountContent{
-      border: #40b9dc solid 2px;
-      margin-left: 2vw;
-      border-radius: 0.8vw;
-      width: 28vw;
-      height: 34vh;
+    /* add for new */
+    .Vaccount{
+      text-align: center;
+      width: 12vw;
+      border: #40b9dc solid 1px;
+      border-radius: 1vh;
     }
-    .text{
-      margin-left: 1vw;
-      text-align: right;
-      width: 4vw;
-      height: 4vh;
-      color: #40b9dc;
-      line-height: 4vh;
+    .ac1{
+      background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
+      color: #fff;
     }
-    .passbtn{
-
-    border:0 ;
-    border-radius: 5%;
-    font-size: 1vw;
-    color: white;
-    margin-left: 6vw;
-    background-color: #40b9dc;
-    margin-top: 1vh;
-    width: 7vw;
-    height: 5vh;
-
-  }
-  .refusebtn{
-
-    border:0 ;
-    border-radius: 5%;
-    font-size: 1vw;
-    color: white;
-    margin-top: 1vh;
-    background-color: rgb(255, 155, 172);
-    margin-left: 1vw;
-    width: 7vw;
-    height: 5vh;
-
-  }
-
-
-
-
+  
   </style>

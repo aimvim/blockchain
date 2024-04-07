@@ -10,7 +10,7 @@
               <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                        class="menu" mode="horizontal" @select="handleSelect2" :ellipsis="false"> <!-- 菜单激活回调 -->
                 
-                <el-menu-item  index="2" @click="taskAH">任务审核</el-menu-item>
+                <el-menu-item  index="2"  @click="taskAH">任务审核</el-menu-item>
                 <el-menu-item  index="1">账号审核</el-menu-item>
                 
               </el-menu>
@@ -40,8 +40,8 @@
               
               <el-menu active-text-color="#303133" background-color="#fff" @select="handleSelect2"
                        text-color="#1b1c1f" class="taskMenu" :default-active="taskMenu">
-                <el-menu-item index='1'>未审核</el-menu-item>
-                <el-menu-item index='2' @click="passedAccount">已审核</el-menu-item>
+                <el-menu-item index='2' @click="auditing">未审核</el-menu-item>
+                <el-menu-item index='1' @click="passedAccount">已审核</el-menu-item>
               </el-menu>
             </div>
           </el-aside>
@@ -54,32 +54,28 @@
             <div class="accountContent">
             <div class="text" id="username">用户名:</div>
             <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
+            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 19vw;margin-top: 4vh;"></div>
+
           </div>
           <div class="accountContent">
             <div class="text" id="username">用户名:</div>
             <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
+            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 19vw;margin-top: 4vh;"></div>
+
           </div>
           </div>
           <div style="display: flex;margin-top: 1vh;">
             <div class="accountContent">
             <div class="text" id="username">用户名:</div>
             <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
+            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 19vw;margin-top: 4vh;"></div>
+
           </div>
           <div class="accountContent">
             <div class="text" id="username">用户名:</div>
             <div class="text" id="department">机构：</div>
-            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 17vw;"></div>
-            <button class="passbtn" @click="" >通过</button>
-            <button class="refusebtn" @click="" >不通过</button>
+            <div class="photoStyle"><img src="../image/pictureNotLoaded.png" alt=""  style="margin-left: 5vw;width: 19vw;margin-top: 4vh;"></div>
+
           </div>
           </div>
 
@@ -97,7 +93,8 @@
   <script setup lang="ts" name="Home">
     import {reactive, ref} from "vue"
     import {Search} from "@element-plus/icons-vue"
-    import Detail from "./Detail.vue"
+
+
   
     const menu = ref("1")
     const identity = localStorage.getItem('identity')
@@ -117,23 +114,7 @@
       description: ""
     })
     const defaultTime = new Date(2000, 1, 1, 8, 0, 0)
-    const rules = reactive({
-      name: [
-        {required: true, message: "请输入名称", trigger: "blur"}
-      ],
-      location: [
-        {required: true, message: "请输入活动区域", trigger: "blur"}
-      ],
-      time: [
-        {required: true, message: "请选择活动时间", trigger: "blur"}
-      ],
-      trait: [
-        {required: true, message: "请选择性质", trigger: "blur"}
-      ],
-      description: [
-        {required: true, message: "请输入描述", trigger: "blur"}
-      ]
-    })
+    
   
     const handleSelect2 = (index: string) => {
       console.log(index)
@@ -148,9 +129,11 @@
       reset()
       openTask.value = false
     }
-
     function passedAccount() {
       window.location.href='./passedAccount';
+    }
+    function auditing() {
+        window.location.href='./accountAudit';
     }
     function taskAH() {
       window.location.href='./taskAuditHome';
@@ -182,7 +165,8 @@
       font-size: 17px;
       width: 9.32vw;
     }
-
+  
+    
     .menu .el-menu-item.is-active {
       color: #fff;
       background: #40b9dc;
@@ -213,7 +197,10 @@
       margin-top: 4.91vh;
       margin-left: 7.42vw;
     }
-
+  
+    
+  
+    
   
     .taskMenu {
       margin-top: 3.15vh;
@@ -286,34 +273,9 @@
       color: #40b9dc;
       line-height: 4vh;
     }
-    .passbtn{
+    
+    
+    
 
-    border:0 ;
-    border-radius: 5%;
-    font-size: 1vw;
-    color: white;
-    margin-left: 6vw;
-    background-color: #40b9dc;
-    margin-top: 1vh;
-    width: 7vw;
-    height: 5vh;
-
-  }
-  .refusebtn{
-
-    border:0 ;
-    border-radius: 5%;
-    font-size: 1vw;
-    color: white;
-    margin-top: 1vh;
-    background-color: rgb(255, 155, 172);
-    margin-left: 1vw;
-    width: 7vw;
-    height: 5vh;
-
-  }
-
-
-
-
+  
   </style>

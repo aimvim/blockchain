@@ -4,13 +4,13 @@
       <el-header height="8.26vh" style="">
         <div style="display: flex;">
           <div class="title">
-            <span style="margin-left: 13px; font-size: 28px">时间银行管理系统</span><br>
-            <span style="font-size: 15px">Time Bank Management System</span>
+            <span style="margin-left: 0.4vw; font-size:1.65vw">时间银行管理系统</span><br>
+            <span style="font-size: 0.9vw">Time Bank Management System</span>
           </div>
             <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                      class="menu" mode="horizontal" @select="handleSelect1" :ellipsis="false"> <!-- 菜单激活回调 -->
               <el-menu-item index="1">任务中心</el-menu-item>
-              <el-menu-item v-if="identity === '志愿者'" index="2">交易社区</el-menu-item>
+              <el-menu-item v-if="identity === '志愿者'" index="2" @click='dealCommunity'>交易社区</el-menu-item>
               <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
             </el-menu>
           <el-popover popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="13vw">
@@ -20,11 +20,22 @@
               </div>
             </template>
             <template #default>
-              <div class="popover">
+              <div class="popover" v-if="identity === '志愿者'">
                 <span class="pText">用户名：{{ username }}</span>
                 <br>
                 <br>
                 <span class="pText">机构：{{ institution }}</span>
+              </div>
+              <div class="popover" id="popover" v-if="identity === '用户'">
+                <div class="Vaccount ac1"><span class="pText">地址：  {{ address1 }}</span> <br><span class="pText">交易次数:{{ dealtimes1 }}</span><br>
+                  <span>时间币：</span>{{ timeCoin1 }}
+                </div>
+                <div class="Vaccount ac2"><span class="pText">地址： {{ address2 }}</span> <br><span class="pText">交易次数:{{ dealtimes2 }}</span><br>
+                  <span>时间币：</span>{{ timeCoin2 }}
+                </div>
+                <div class="Vaccount ac3"><span class="pText">地址： {{ address3 }}</span> <br><span class="pText">交易次数:{{ dealtimes3 }}</span><br>
+                  <span>时间币：</span>{{ timeCoin3 }}
+                </div>
               </div>
             </template>
           </el-popover>
@@ -319,6 +330,18 @@
       }
     })
   }
+  //add for new
+  var address1 ='asdadasdas';
+  var address2 = 'adsasdaqwe';
+  var address3 = 'awdasdwgggg';
+  var dealtimes1 = 222;
+  var dealtimes2 = 333;
+  var dealtimes3 = 123;
+  var timeCoin1 = 2.3;
+  var timeCoin2 = 23.3;
+  var timeCoin3 = 0;
+  var accountNumber = 3;
+  var popover = document.getElementById("popover");
 
   function load1() {
     loading.value = true
@@ -376,6 +399,9 @@
   // TODO：查询，任务详情，发布任务，交互信息，分页
 
   load1()
+  function dealCommunity(){
+    window.location.href='vPersonal';
+  }
 
 </script>
 
@@ -510,6 +536,17 @@
   .pText {
     height: 2vh;
     font-family: "黑体";
+  }
+  /* add for new */
+  .Vaccount{
+    text-align: center;
+    width: 12vw;
+    border: #40b9dc solid 1px;
+    border-radius: 1vh;
+  }
+  .ac1{
+    background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
+    color: #fff;
   }
 
 </style>
