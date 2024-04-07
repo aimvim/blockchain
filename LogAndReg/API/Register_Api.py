@@ -10,28 +10,42 @@ app = Flask(__name__)
 #user注册需要邀请码和证明材料，并且需要等待后才能进行
 @app.route("/volunteer_register",methods=['POST'])
 def volunteer_register():
-    ''''
-    {
-    "id":id,
-    "password":passwd
-    }
-    '''
     UserInfo = request.get_json()
     try:
         db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
-        return e,400 #如果数据库连接失败则返回错误原因
+        return e, 400 #如果数据库连接失败则返回错误原因
     cursor = db.cursor()
     #密码存入数据库中采用密文的形式
     CryptPasswd = hashlib.sha256(UserInfo["password"].encode("utf8")).hexdigest()#哈希函数加密使用utf8编码形式
     sql ='insert into VolunteerInfo values("{}","{}")'.format(UserInfo['id'],CryptPasswd)#将user信息加入到数据库中
     #将注册信息加入到数据库中，或者返回id已被使用的错误
+    sql1 = '''
+    create table mission_published_{}(
+    id int auto_increment primary key,
+    name varchar(64),
+    area varchar(64),
+    begintime datetime,
+    endtime datetime,
+    activitytime float not null,
+    award double not null,
+    mcharacter varchar(64) check(mcharacter in ("ABCD","EFGH","IJKL","MNOP")),
+    details varchar(1000),
+    status varchar(16) default "not finished",
+    checked varchar(3) check(checked in ("not", "yes")) default "not",
+    uploader varchar(8) not null,
+    uploader_company varchar(32) not null,
+    constraint foreign key(name,area,status)  
+    references mission_published(name,area,status)
+    on update cascade
+);
+    '''.format(UserInfo['id'])#建立个人私人的表
     try:
         cursor.execute(sql)
         db.commit()
         cursor.close()
         db.close()
-        return "注册成功",200
+        return jsonify("注册成功"),200
     except Exception as e:
         return str(e),400
 
@@ -52,7 +66,7 @@ def admin_register():
     '''
     admininfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
+        db = pymysql.connect(host="localhost",user="root",passwd="Wu_CRH.0523",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
         return str(e),400
     cursor = db.cursor(cursor = pymysql.cursors.DictCursor)
@@ -101,7 +115,7 @@ def user_register():
     '''
     VolunteerInfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, charset="utf8", db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, charset="utf8", db="blockchain")
     except Exception as e:
         return str(e), 400  # 如果数据库连接失败则返回错误原因
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
