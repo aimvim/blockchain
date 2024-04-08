@@ -1,8 +1,9 @@
 import hashlib
 from flask import Flask, request, jsonify
 import pymysql
-from LogAndReg.functions_OL.Account import *
-from LogAndReg.functions_OL.blockchain import *
+from LogAndReg.functions.Account_OL import *
+from LogAndReg.functions.Account import *
+from LogAndReg.functions.blockchain import *
 
 
 app = Flask(__name__)
@@ -29,9 +30,17 @@ def volunteer_register():
     try:
         cursor.execute(sql)
         db.commit()
+        sk = GenSk()
+        pk = GenPk(sk)
+        AdCre(sk,UserInfo['id'])
+        SK = binascii.hexlify(sk).decode()
+        PK = binascii.hexlify(pk).decode()
+        msg ={"WARNING":"请保管好你的私钥",
+              "sk":SK,
+              "pk":PK}
         cursor.close()
         db.close()
-        return "注册成功",200
+        return jsonify(msg),200
     except Exception as e:
         return str(e),400
 
@@ -120,11 +129,10 @@ def user_register():
         try:
             cursor.execute(sql)
             db.commit()
-            sk = GenSk()
-            pk = GenPk(sk)
-            adress = AdCre(sk,volunteer_register['id'])
             cursor.close()
             db.close()
+            sk = GenSk()
+            AdCre_OL(sk,VolunteerInfo['id'])
             return "注册成功", 200
         except Exception as e:
             return str(e), 400

@@ -472,12 +472,19 @@ def volunteer_register():
     try:
         cursor.execute(sql)
         db.commit()
+        sk = GenSk()
+        pk = GenPk(sk)
+        AdCre(sk,UserInfo['id'])
+        SK = binascii.hexlify(sk).decode()
+        PK = binascii.hexlify(pk).decode()
+        msg ={"WARNING":"请保管好你的私钥",
+              "sk":SK,
+              "pk":PK}
         cursor.close()
         db.close()
-        return "注册成功",200
+        return jsonify(msg),200
     except Exception as e:
         return str(e),400
-
 
 
 #admin的注册需要邀请码和注册码
@@ -966,7 +973,7 @@ def publishMission():
         '''
         传入
         {
-        “Signature”: sig,
+        "private_key":
         "Senderadress": sed,
         "Amount": am,
         "Fees": fees,
@@ -975,19 +982,66 @@ def publishMission():
         '''
         try:
             data = request.get_json()
-            sig = data['Signature']
+            # sig = data['Signature']
             sd = data['Senderadress']  # Fixed typo
             am = data['Amount']
             fees = data['Fees']
             rep = data['Recipient']  # Fixed capitalization
+            sk = data['private_key']
+            value = {"private_key": sk, "sender_adress": sd, "amount": am, "recipient": rep, "Fees": fees}
+            print(value)
+            sk = binascii.unhexlify(value['private_key'])  # 这里将私钥做成字节串格式
+            print(sk)
+            pk = GenPk(sk)  # 生成公钥
+            # 现在生成的sk与pk都是字节串格式
+            pk = binascii.hexlify(pk).decode()
+            print(pk)
             db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-            cursor = db.cursor()
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+            sql = 'select adress from pkadress where adress="{}"'.format(value['sender_adress'])
+            sql1 = 'select adress from pkadress where adress="{}"'.format(value['recipient'])
+            # 检验私钥是否正确
+            sql2 = 'select pk from pkadress where adress="{}"'.format(value['sender_adress'])
+            try:
+                print("12")
+                cursor.execute(sql)
+                result1 = cursor.fetchone()
+                cursor.execute(sql1)
+                result2 = cursor.fetchone()
+                cursor.execute(sql2)
+                result3 = cursor.fetchone()
+                result3 = result3['pk']
+                if result1 == None or result2 == None or result3 != pk:
+                    cursor.close()
+                    db.close()
+                    return "Account Not Exist!"
+                else:
+                    sql2 = 'select tx_nonce from pkadress where adress="{}"'.format(value['sender_adress'])
+                    cursor.execute(sql2)
+                    tx_nonce = cursor.fetchone()['tx_nonce']
+                    print(tx_nonce)
+                    data = {
+                        "inputs": {
+                            "sender_adress": value['sender_adress'],
+                            "tx_nonce": tx_nonce + 1,
+                        },
+                        "outputs": {
+                            "amount": value['amount'],
+                            "recipient": value['recipient'],
+                            "Fees": value['Fees']
+                        }
+                    }
+                    Sig = GenSig(sk, str(data))
+                    sig = Sig
+                    print(sig)
+            except Exception as e:
+                return jsonify(str(e)), 500
 
             # Check sender's balance
             msql = 'SELECT amount FROM pkadress WHERE adress=%s'
             cursor.execute(msql, (sd,))
             sender_amount = cursor.fetchone()
-            if sender_amount is not None and sender_amount[0] >= (fees + am):
+            if sender_amount is not None and sender_amount['amount'] >= (fees + am):
                 # Get necessary data from database
                 sql1 = 'SELECT pk FROM pkadress WHERE adress=%s'
                 sql2 = 'SELECT adress FROM pkadress WHERE adress=%s'
@@ -998,7 +1052,7 @@ def publishMission():
                 result2 = cursor.fetchone()
                 cursor.execute(sql3, (sd,))
                 result3 = cursor.fetchone()
-
+                print(result3)
                 # Check if any necessary account is missing
                 if None in (result1, result2, result3):
                     cursor.close()
@@ -1007,12 +1061,12 @@ def publishMission():
                 else:
                     # Update sender's transaction nonce
                     sql4 = 'UPDATE pkadress SET tx_nonce=%s WHERE adress=%s'
-                    cursor.execute(sql4, (result3[0] + 1, sd))
+                    cursor.execute(sql4, (result3['tx_nonce'] + 1, sd))
                     db.commit()
 
                     # Insert transaction into database
                     sql = 'INSERT INTO `transaction` (`signature`, `senderadress`, `amount`, `fees`, `recipient`, `onchain`, `tx_nonce`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
-                    values = (sig, sd, am, fees, rep, "not", result3[0] + 1)
+                    values = (sig, sd, am, fees, rep, "not", result3['tx_nonce'] + 1)
                     cursor.execute(sql, values)
                     db.commit()
                     cursor.close()
