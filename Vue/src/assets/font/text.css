@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'siYuanRegular';
+    src: url('./SourceHanSerifCN-Regular-1.otf');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'siYuanBold';
+    src: url('./SourceHanSerifCN-Bold-2.otf');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'siYuanLight';
+    src: url('./SourceHanSerifCN-Light-5.otf');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'siYuanMedium';
+    src: url('./SourceHanSerifCN-Medium-6.otf');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'siYuanSemiBold';
+    src: url('./SourceHanSerifCN-SemiBold-7.otf');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'siYuanHeavy';
+    src: url('./SourceHanSerifCN-Heavy-4.otf');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'siYuanExtraLight';
+    src: url('./SourceHanSerifCN-ExtraLight-3.otf');
+    font-weight: 200;
+    font-style: normal;
+}

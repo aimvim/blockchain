@@ -17,6 +17,8 @@ print(blockchain.hash(blockchain.blockchain[0]))
 ########################################
 #这里api还挺麻烦的，写的时候可能需要两边对接下
 ########################################
+
+
 @app.route("/AddNewBlock", methods=["POST"])
 def AddNewBlock():
     #这里传入的block是一条区块链
