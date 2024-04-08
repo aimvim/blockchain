@@ -23,9 +23,7 @@ def GenPk_OL(PrivateKey):  # 基于私钥生成公钥，然后生成地址？这
 
 # 公钥用于签名的验证，地址用来实现转账
 def AdCre_OL(private_key,id):  # 生成账户地址，并将公钥与地址存入数据库当中
-    print("12")
-    public_key = GenPk_OL(private_key)
-    print(public_key)
+    public_key = GenPk(private_key)
     prefix_and_pubkey = b"\x04" + public_key
     intermediate = hashlib.sha256(prefix_and_pubkey).digest()
     ripemd160 = hashlib.new('ripemd160')
@@ -37,7 +35,6 @@ def AdCre_OL(private_key,id):  # 生成账户地址，并将公钥与地址存�
     checksum = double_hash[:4]
     pre_address = prefix_and_hash160 + checksum
     address = base58.b58encode(pre_address)
-    print("1")
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
     cursor = db.cursor()
     sql = 'insert into pkadress(pk,adress,id,amount) value("{}","{}","{}",100)'.format(binascii.hexlify(public_key).decode(), address.decode(),id)
