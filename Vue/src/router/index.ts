@@ -4,7 +4,8 @@ import { createRouter, createWebHistory } from "vue-router"
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import Home from '@/views/Home.vue'
-import TaskAudit from '@/views/TaskAudit.vue'
+import TaskDetail from '@/views/TaskDetail.vue'
+import AdminTaskDetail from '@/views/AdminTaskDetail.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -28,6 +29,12 @@ const router = createRouter({
             name: 'taskAudit',
             path: '/taskAudit',
             component: TaskAudit,
+        },
+        {
+            name: 'taskDetail',
+            path: '/taskDetail',
+            component: TaskDetail,
+            props: true
         },
         {
             path: '/',

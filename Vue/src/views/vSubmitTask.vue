@@ -68,7 +68,7 @@
   <script setup lang="ts" name="Home">
   import {reactive, ref} from "vue"
   import {Search} from "@element-plus/icons-vue"
-  import Detail from "./Detail.vue"
+  import Detail from "../components/Detail.vue"
   import { dataType } from "element-plus/es/components/table-v2/src/common.mjs";
   
   const menu = ref("1")

@@ -44,7 +44,8 @@
           </div>
           <div style="display: flex" v-if="form.identity === '用户'">
             <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="19px"><DocumentChecked /></el-icon>
-            <el-upload class="upload" drag action="awa" multiple :before-upload="beforeUpload">
+            <el-upload class="upload" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                       :auto-upload="false" drag multiple :before-upload="beforeUpload">
               <el-icon class="el-icon--upload"><upload-filled /></el-icon>
               <div class="el-upload__text">
                 将图片拖拽至这里或 <em>手动上传</em>
@@ -151,7 +152,7 @@ import router from "@/router";
         axios.post('http://localhost:5000/user_register',
             {
               id: form.username,
-              password: form.password,
+              passwd: form.password,
               register_code: form.registrationCode,
               proof: "sdandsehnqoinqoi"
             }).then(res => {
@@ -160,6 +161,12 @@ import router from "@/router";
             localStorage.setItem('identity', form.identity)
             localStorage.setItem('username', form.username)
             router.push('/login')
+          } else {
+            ElMessage.error('注册失败')
+          }
+        }).catch(res => {
+          if (res.response.data === 'Wrong Register Code!') {
+            ElMessage.error('注册码错误')
           } else {
             ElMessage.error('注册失败')
           }
@@ -193,6 +200,12 @@ import router from "@/router";
             localStorage.setItem('identity', form.identity)
             localStorage.setItem('username', form.username)
             router.push('/login')
+          } else {
+            ElMessage.error('注册失败')
+          }
+        }).catch(res => {
+          if (res.response.data === 'Wrong Register Code!') {
+            ElMessage.error('注册码错误')
           } else {
             ElMessage.error('注册失败')
           }
@@ -318,6 +331,30 @@ import router from "@/router";
 
   .el-button:active {
     background-color: rgba(255, 255, 255, 0);
+  }
+
+  .upload {
+    width: 13.1vw;
+  }
+
+  /deep/ .upload .el-upload-list {
+    margin-top: 30px;
+  }
+
+  /deep/ .upload .el-upload-list__item {
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+
+  /deep/ .upload .el-upload-list__item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /deep/ .el-upload-list__item-name .el-icon {
+    color: white;
+  }
+
+  /deep/ .upload .el-upload-list__item-name {
+    color: white;
   }
 
   /deep/ .el-upload .el-upload-dragger {

@@ -9,7 +9,6 @@ app = Flask(__name__)
 # user登录成功后返回id信息和背靠的公司信息
 CORS(app)
 
-
 @app.route("/UserLogin", methods=['POST'])
 def userlogin():
     db = pymysql.connect(host="localhost", port=3306, user="root", passwd="Wu_CRH.0523", db="blockchain")
@@ -78,7 +77,7 @@ def volunteerlogin():
         cursor.execute(sql)
         result = cursor.fetchone()
     except Exception as e:
-        return jsonify(str(e)),500
+        return jsonify(str(e)), 500
     if result == None:
         return "Id not exist", 400
     else:

@@ -81,6 +81,8 @@
             } else {
               ElMessage.error('用户名或密码错误')
             }
+          }).catch(() => {
+            ElMessage.error('用户名或密码错误')
           })
         } else if (form.identity === '志愿者') {
           axios.post('http://localhost:5000/VolunteerLogin', {
@@ -89,13 +91,14 @@
           }).then(res => {
             if (res.status === 200) {
               ElMessage.success('登录成功')
-              localStorage.setItem('institution', res.data.company)
               localStorage.setItem('identity', form.identity)
               localStorage.setItem('username', form.username)
               router.push('/home')
             } else {
               ElMessage.error('用户名或密码错误')
             }
+          }).catch(() => {
+            ElMessage.error('用户名或密码错误')
           })
         } else {
           axios.post('http://localhost:5000/UserLogin', {
@@ -104,6 +107,7 @@
           }).then(res => {
             if (res.status === 200) {
               ElMessage.success('登录成功')
+              localStorage.setItem('institution', res.data.company)
               localStorage.setItem('identity', form.identity)
               localStorage.setItem('username', form.username)
               router.push('/home')

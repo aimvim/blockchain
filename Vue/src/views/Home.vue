@@ -4,14 +4,16 @@
       <el-header height="8.26vh" style="">
         <div style="display: flex;">
           <div class="title">
-            <span style="margin-left: 0.4vw; font-size:1.65vw">时间银行管理系统</span><br>
+            <span style="margin-left: 1.3vw; font-size:1.5vw">时间银行管理系统</span><br>
             <span style="font-size: 0.9vw">Time Bank Management System</span>
           </div>
             <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                      class="menu" mode="horizontal" @select="handleSelect1" :ellipsis="false"> <!-- 菜单激活回调 -->
-              <el-menu-item index="1">任务中心</el-menu-item>
+              <el-menu-item index="1" v-if="identity === '用户' || identity === '志愿者'">任务中心</el-menu-item>
               <el-menu-item v-if="identity === '志愿者'" index="2" @click='dealCommunity'>交易社区</el-menu-item>
               <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
+              <el-menu-item v-if="identity === '管理员'" index="4">任务审核</el-menu-item>
+              <el-menu-item v-if="identity === '管理员'" index="5">账号审核</el-menu-item>
             </el-menu>
           <el-popover popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="13vw">
             <template #reference>
@@ -20,13 +22,12 @@
               </div>
             </template>
             <template #default>
-              <div class="popover" v-if="identity === '志愿者'">
+              <div class="popover" v-if="identity === '用户'">
                 <span class="pText">用户名：{{ username }}</span>
-                <br>
                 <br>
                 <span class="pText">机构：{{ institution }}</span>
               </div>
-              <div class="popover" id="popover" v-if="identity === '用户'">
+              <div class="popover" id="popover" v-if="identity === '志愿者'">
                 <div class="Vaccount ac1"><span class="pText">地址：  {{ address1 }}</span> <br><span class="pText">交易次数:{{ dealtimes1 }}</span><br>
                   <span>时间币：</span>{{ timeCoin1 }}
                 </div>
@@ -45,28 +46,36 @@
       <el-container>
         <el-aside width="20.05vw">
           <div class="option">
-            <el-button class="openTask" @click="openTask = true">发布任务</el-button>
+            <el-button class="openTask" @click="openTask = true" v-if="identity === '用户'">发布任务</el-button>
             <el-menu active-text-color="#303133" background-color="#fff" @select="handleSelect2"
                      text-color="#1b1c1f" class="taskMenu" :default-active="taskMenu">
-              <el-menu-item index='1'>已发布</el-menu-item>
-              <el-menu-item index='2'>已完成</el-menu-item>
+              <el-menu-item index='1' v-if="identity === '用户'">已发布</el-menu-item>
+              <el-menu-item index='2' v-if="identity === '用户'">已完成</el-menu-item>
+              <el-menu-item index='3' v-if="identity === '管理员'">未审核发布</el-menu-item>
+              <el-menu-item index='4' v-if="identity === '管理员'">已审核发布</el-menu-item>
+              <el-menu-item index='5' v-if="identity === '管理员'">未审核提交</el-menu-item>
+              <el-menu-item index='6' v-if="identity === '管理员'">已审核提交</el-menu-item>
             </el-menu>
           </div>
         </el-aside>
         <el-main>
           <div class="search">
-            <el-input v-model="search" style="width: 240px"
+            <div style="display: flex">
+              <el-input v-model="search" style="width: 11.46vw"
                       :prefix-icon="Search" placeholder="请输入" clearable/>
+              <el-button class="detail" style="margin-left: 10px; margin-right: 0" @click="searching">搜索</el-button>
+              <el-button style="margin-left: 10px" @click="change(1)">重置</el-button>
+            </div>
           </div>
           <div v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
                   element-loading-svg-view-box="-10, -10, 50, 50" element-loading-background="rgba(122, 122, 122, 0.8)" style="width: 66.15vw; margin-top: 5px">
             <div style="display: flex">
-              <Detail :detail="detailData[0]"/>
-              <Detail :detail="detailData[1]"/>
+              <Detail :detail="detailData[0]" :index="taskMenu"/>
+              <Detail :detail="detailData[1]" :index="taskMenu"/>
             </div>
             <div style="display: flex">
-              <Detail :detail="detailData[2]"/>
-              <Detail :detail="detailData[3]"/>
+              <Detail :detail="detailData[2]" :index="taskMenu"/>
+              <Detail :detail="detailData[3]" :index="taskMenu"/>
             </div>
           </div>
           <div style="text-align: center; display: flex">
@@ -133,22 +142,22 @@
 </template>
 
 <script setup lang="ts" name="Home">
-  import {reactive, ref} from "vue"
+import {onMounted, reactive, ref, watch} from "vue"
   import {Search} from "@element-plus/icons-vue"
-  import Detail from "./Detail.vue"
+  import Detail from "../components/Detail.vue"
   import axios from "axios";
   import {ElMessage} from "element-plus";
   import router from "@/router";
 
-  const menu = ref("1")
+  const menu = ref('1')
   const identity = localStorage.getItem('identity')
   const username = localStorage.getItem('username')
   const institution = localStorage.getItem('institution') !== "" ? localStorage.getItem('institution') : "无" // 可能 bug
   const taskMenu = ref('1')
   const search = ref("")
   const loading = ref(false)
+  const searchFlag = ref(false)
   const total = ref(1)
-  const curIndex = ref('1')
   const openTask = ref(false)
   const fullscreenLoading = ref(false)
   const formRef = ref()
@@ -234,19 +243,31 @@
   }]
 
   const handleSelect2 = (index: string) => {
+    taskMenu.value = index
+    localStorage.setItem('index', index)
     if (index === '1') {
-      load1()
-    } else {
-      load2()
+      loadUserPublished()
+    } else if (index === '2') {
+      loadUserCompleted()
+    } else if (index === '3') {
+      loadAdminNCP()
+    } else if (index === '4') {
+      loadAdminCCP()
+    } else if (index === '5') {
+      loadAdminNCS()
+    } else if (index === '6'){
+      loadAdminCCS()
     }
   }
 
   function change(val: number) {
-    curPage.value = val
-    if (curIndex.value === '1') {
-      load1()
-    } else {
-      load2()
+    if (!searchFlag.value) {
+      curPage.value = val
+      if (taskMenu.value === '1') {
+        loadUserPublished()
+      } else if (taskMenu.value === '2'){
+        loadUserCompleted()
+      }
     }
   }
 
@@ -343,7 +364,7 @@
   var accountNumber = 3;
   var popover = document.getElementById("popover");
 
-  function load1() {
+  function loadUserPublished() {
     loading.value = true
     axios.post('http://localhost:5000/PublishedMission', {
       page: curPage.value,
@@ -370,7 +391,8 @@
     })
   }
 
-  function load2() {
+  function loadUserCompleted() {
+    curPage.value = 1
     loading.value = true
     axios.post('http://localhost:5000/FinishedMission', {
       page: curPage.value,
@@ -396,9 +418,195 @@
       loading.value = false
     })
   }
-  // TODO：查询，任务详情，发布任务，交互信息，分页
 
-  load1()
+  function searching() {
+    if (search.value === "") {
+      ElMessage({
+        type: 'warning',
+        message: '请输入搜索内容',
+      })
+    } else {
+      searchFlag.value = true
+      loading.value = true
+      axios.post('http://localhost:5000/select', {
+        id: username,
+        input: search.value
+      }).then(res => {
+        detailData = reactive([{
+          activitytime: 0.,
+          area: "",
+          award: 0.,
+          begintime: "",
+          checked: "",
+          details: "",
+          endtime: "",
+          id: 0,
+          mcharacter: "",
+          name: "",
+          status: "",
+          uploader: "",
+          uploader_company: ""
+        }])
+        Object.assign(detailData, res.data)
+        total.value = 1
+        loading.value = false
+      }).catch(res => {
+        if (res.response.data.error === 'No results found')
+        ElMessage({
+          type: 'error',
+          message: '没有找到任务（请输入任务全名）',
+        })
+        loading.value = false
+      }).finally(() => {
+        searchFlag.value = false
+      })
+    }
+  }
+
+  function loadAdminNCP() {
+    loading.value = true
+    axios.post('http://localhost:5000/NotCheckedMission', {
+      page: curPage.value
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function loadAdminCCP() {
+    loading.value = true
+    axios.post('http://localhost:5000/CheckedMission', {
+      page: curPage.value
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function loadAdminNCS() {
+    loading.value = true
+    axios.post('http://localhost:5000/Check/SubmittedProof', {
+      page: curPage.value
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function loadAdminCCS() {
+    loading.value = true
+    axios.post('http://localhost:5000/Finished/SubmittedProof', {
+      page: curPage.value
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function handleSelect1() {
+
+  }
+
+  function selectLoad() {
+    handleSelect2(taskMenu.value)
+  }
+
+  function selectMenu() {
+    if (identity === '用户') {
+      menu.value = '1'
+    } else if (identity === '管理员') {
+      menu.value = '4'
+    }
+  }
+
+  function selectTaskMenu() {
+    if (identity === '用户') {
+      taskMenu.value = '1'
+    } else if (identity === '管理员') {
+      taskMenu.value = '3'
+    }
+  }
+
+  onMounted(() => {
+    selectMenu()
+    selectTaskMenu()
+    const getIndex = localStorage.getItem('index')
+    if (getIndex !== null) {
+      taskMenu.value = getIndex
+    } else {
+      if (identity === '用户') {
+        localStorage.setItem('index', '1')
+      } else if (identity === '管理员') {
+        localStorage.setItem('index', '3')
+      }
+    }
+    selectLoad()
+  })
+
   function dealCommunity(){
     window.location.href='vPersonal';
   }
@@ -408,7 +616,7 @@
 <style scoped>
   .title {
     width: 15vw;
-    margin: 10px 25px 0;
+    margin: 10px 20px 0;
     background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
     -webkit-background-clip: text;
     background-clip: text;
@@ -508,7 +716,7 @@
   }
 
   .search {
-    margin-left: 52vw;
+    margin-left: 44.3vw;
     margin-top: 3vh;
   }
 
@@ -534,9 +742,11 @@
   }
 
   .pText {
-    height: 2vh;
+    line-height: 4vh;
     font-family: "黑体";
+    font-size: 16px;
   }
+
   /* add for new */
   .Vaccount{
     text-align: center;
@@ -544,9 +754,25 @@
     border: #40b9dc solid 1px;
     border-radius: 1vh;
   }
-  .ac1{
+
+  .ac1 {
     background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
     color: #fff;
+  }
+
+  .detail {
+    margin-right: 10px;
+    width: 4vw;
+    background-color: #40b9dc;
+    color: white;
+  }
+
+  .detail:hover {
+    background-color: rgba(64, 185, 220, 0.5);
+  }
+
+  .detail:active {
+    background-color: rgba(64, 185, 220, 0.3);
   }
 
 </style>

@@ -9,7 +9,7 @@ blockchain.genesis_block()
 app = Flask(__name__)
 CORS(app)
 #查看未审核的任务（只有已审核的任务才能被志愿者看到）
-@app.route("/NotCheckedMission",methods=['GET'])
+@app.route("/NotCheckedMission",methods=['POST'])
 def NotCheckedMission():
     '''
     传入的json为
@@ -18,7 +18,7 @@ def NotCheckedMission():
     }
     '''
     page = request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where checked = "not" and status="not finished" limit {},4;'.format(4 * (page - 1))
     try:
@@ -38,7 +38,7 @@ def NotCheckedMission():
         return jsonify(e),500
 
 
-@app.route("/CheckedMission",methods=['GET'])
+@app.route("/CheckedMission",methods=['POST'])
 def CheckedMission():
     '''
     传入的json为
@@ -47,7 +47,7 @@ def CheckedMission():
     }
     '''
     page = request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where checked = "yes" and status="not finished" limit {},4;'.format(4 * (page - 1))
     try:
@@ -69,12 +69,12 @@ def CheckedMission():
 
 #点开任务卡的信息应该是前端自己反馈的吧
 #这里我就做一个通过任务的api
-@app.route("/passmission",methods=['GET'])
+@app.route("/passmission",methods=['POST'])
 def passmission():
     #onclick——当点击通过之后
     #{"id":id}   --这里的id是个序号，不是用户名哦，前面都会返回id的
     id = request.get_json()['id']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor()
     sql = 'update mission_published set checked="yes" where id = {}'.format(id)
     try:
@@ -84,7 +84,7 @@ def passmission():
     except Exception as e:
         return jsonify(e),500
 
-@app.route("/SelectCheckedMission",methods=['GET'])
+@app.route("/SelectCheckedMission",methods=['POST'])
 def SCM():
     ''''
     传入json为
@@ -93,7 +93,7 @@ def SCM():
     }
     '''
     input = request.get_json()['input']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where name="{}" and checked="yes" and status="not finished"'.format(input)
     try:
@@ -106,7 +106,7 @@ def SCM():
     except Exception as e:
         return jsonify(e),500
 
-@app.route("/SelectNotCheckedMission",methods=['GET'])
+@app.route("/SelectNotCheckedMission",methods=['POST'])
 def SNCM():
     ''''
     传入json为
@@ -115,7 +115,7 @@ def SNCM():
     }
     '''
     input = request.get_json()['input']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where name="{}" and checked="not" and status="not finished"'.format(input)
     try:
@@ -129,7 +129,7 @@ def SNCM():
         return jsonify(e),500
 
 #这个API的作用是返回未审核的账户
-@app.route("/NtUser")
+@app.route("/NtUser", methods=['POST'])
 def UN():
     ''''
     输入json
@@ -137,7 +137,7 @@ def UN():
     "page":page
     }'''
     page=request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "select * from userinfo where checked='not' limit {},4".format(4*page-4)
     try:
@@ -156,13 +156,13 @@ def UN():
     except Exception as e:
         return jsonify(e),500
 
-@app.route("/PassUser",methods=['GET'])
+@app.route("/PassUser",methods=['POST'])
 def passuser():
     '''
     {"id":id}  --这里的id是用户的用户名
     '''
     id = request.get_json()['id']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     try:
         sql = 'update userinfo set checked = "yes" where id="{}"'.format(id)
@@ -173,7 +173,7 @@ def passuser():
         return jsonify(str(e)),500
 
 #返回已经通过审核的用户
-@app.route("/CtUser")
+@app.route("/CtUser", methods=['POST'])
 def CN():
     ''''
     输入json
@@ -181,7 +181,7 @@ def CN():
     "page":page
     }'''
     page=request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "select * from userinfo where checked='yes' limit {},4".format(4*page-4)
     try:
@@ -200,7 +200,7 @@ def CN():
     except Exception as e:
         return jsonify(e),500
 
-@app.route("/SelectNtUser")
+@app.route("/SelectNtUser", methods=['POST'])
 def SUN():
     ''''
     输入json
@@ -208,7 +208,7 @@ def SUN():
     "input":page
     }'''
     input=request.get_json()['input']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "select * from userinfo where checked='not' and id='{}'".format(input)
     try:
@@ -223,7 +223,7 @@ def SUN():
     except Exception as e:
         return jsonify(e),500
 
-@app.route("/SelectCtUser")
+@app.route("/SelectCtUser", methods=['POST'])
 def SCN():
     ''''
     输入json
@@ -231,7 +231,7 @@ def SCN():
     "input":page
     }'''
     input=request.get_json()['input']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     sql = "select * from userinfo where checked='yes' and id='{}'".format(input)
     try:
@@ -246,13 +246,13 @@ def SCN():
     except Exception as e:
         return jsonify(e),500
 
-@app.route("/Check/SubmittedProof",methods=['GET'])
+@app.route("/Check/SubmittedProof",methods=['POST'])
 def CSP():
     ''''
     {"page":page}--编号
     '''
     page = request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where id in (select id from proof_table) and status="not finished" limit {},4'.format(4*page-4)
     try:
@@ -272,13 +272,13 @@ def CSP():
     except Exception as e:
         return jsonify(str(e)),500
 
-@app.route("/Finished/SubmittedProof",methods=['GET'])
+@app.route("/Finished/SubmittedProof",methods=['POST'])
 def FSP():
     ''''
     {"page":page}--编号
     '''
     page = request.get_json()['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where id in (select id from proof_table) and status="finished" limit {},4'.format(4*page-4)
     try:
@@ -299,14 +299,15 @@ def FSP():
         return jsonify(str(e)),500
 
 #打开审核界面
-@app.route("/CCpage")
+@app.route("/CCpage", methods=['POST'])
 def ccp():
     ''''
     传入
     {"id":id}
     '''
     id = request.get_json()['id']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    print(id)
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql = 'select * from mission_published where id={}'.format(id)
     try:
@@ -321,11 +322,12 @@ def ccp():
         return jsonify(str(e)),500
 
 #管理员通过proof
-@app.route("/PassProof", methods=['GET'])
+@app.route("/PassProof", methods=['POST'])
 def PP():
     data = request.get_json()
     mission_id = data['id']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    print(id)
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     try:
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             # 使用参数化查询来更新状态
@@ -367,7 +369,7 @@ def PP():
 
 @app.route("/UserLogin",methods=['POST'])
 def userlogin():
-    db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
+    db = pymysql.connect(host="localhost",port=3306,user="root",passwd="Wu_CRH.0523",db="blockchain")
     cursor = db.cursor()
     userinfo = request.get_json()
     sql = 'select password from userinfo where id="{}"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
@@ -398,7 +400,7 @@ def userlogin():
 
 @app.route("/AdminLogin",methods=['POST'])
 def adminlogin():
-    db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+    db = pymysql.connect(host="localhost", port=3306, user="root", passwd="Wu_CRH.0523", db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     admininfo = request.get_json()
     sql = 'select * from admininfo where id="{}"'.format(admininfo['id'])  # 查询的时候具体一列还是全部元素
@@ -425,7 +427,7 @@ def volunteerlogin():
     }
     :return:
     '''
-    db = pymysql.connect(host="localhost",port=3306,user="root",passwd="123456",db="blockchain")
+    db = pymysql.connect(host="localhost",port=3306,user="root",passwd="Wu_CRH.0523",db="blockchain")
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
     userinfo = request.get_json()
     sql = 'select * from volunteerinfo where id="{}"'.format(userinfo['id'])# 查询的时候具体一列还是全部元素
@@ -461,7 +463,7 @@ def volunteer_register():
     '''
     UserInfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
+        db = pymysql.connect(host="localhost",user="root",passwd="Wu_CRH.0523",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
         return e,400 #如果数据库连接失败则返回错误原因
     cursor = db.cursor()
@@ -495,7 +497,7 @@ def admin_register():
     '''
     admininfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
+        db = pymysql.connect(host="localhost",user="root",passwd="Wu_CRH.0523",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
         return str(e),400
     cursor = db.cursor(cursor = pymysql.cursors.DictCursor)
@@ -544,7 +546,7 @@ def user_register():
     '''
     VolunteerInfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, charset="utf8", db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, charset="utf8", db="blockchain")
     except Exception as e:
         return str(e), 400  # 如果数据库连接失败则返回错误原因
     cursor = db.cursor(cursor=pymysql.cursors.DictCursor)
@@ -572,7 +574,7 @@ def user_register():
         except Exception as e:
             return str(e), 400
 
-@app.route("/PublishedMission",methods=['GET'])
+@app.route("/PublishedMission",methods=['POST'])
 def PM():
     #针对传入信息
     '''
@@ -586,13 +588,13 @@ def PM():
     '''此处返回的类型为list类型'''
     data = request.get_json()
     page = data['page']
-    db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,db="blockchain")
+    db = pymysql.connect(host="localhost",user="root",passwd="Wu_CRH.0523",port=3306,db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select * from mission_published where uploader ="{}" and checked="yes" limit {},4;'.format(data['id'],4*(page-1))
+    sql = 'select * from mission_published where uploader ="{}" limit {},4;'.format(data['id'],4*(page-1))
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        cursor.execute('select count(*) as num from mission_published where uploader=%s and checked="yes"',(data['id']))
+        cursor.execute('select count(*) as num from mission_published where uploader=%s',(data['id']))
         num = cursor.fetchone()['num']
         print(num)
         if result == ():
@@ -605,7 +607,7 @@ def PM():
             return jsonify(result),200#返回消息的全部信息
     except Exception as e:
         return jsonify(e),500
-@app.route("/FinishedMission", methods=['GET'])
+@app.route("/FinishedMission", methods=['POST'])
 def FM():
     # 针对传入信息
     '''
@@ -618,7 +620,7 @@ def FM():
     # 完成对分页的要求
     data = request.get_json()
     page = data['page']
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     sql1  = "select * from mission_published where status = 'finished' and uploader ='{}' limit {},4".format(data['id'],4*page-4)
     try:
@@ -639,7 +641,7 @@ def FM():
         return jsonify(str(e)), 500
 
 
-@app.route("/select", methods=['GET'])
+@app.route("/select", methods=['POST'])
 def select():
     '''
     输入格式为
@@ -652,7 +654,7 @@ def select():
     input_value = data['input']
     try:
         # 尝试连接数据库
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = 'SELECT * FROM mission_published WHERE name="{}" and uploader="{}";'.format(input_value,data['id'])
         # 尝试执行SQL查询
@@ -668,7 +670,7 @@ def select():
         # 处理数据库连接错误或查询错误
         return jsonify({"error": str(e)}), 400
 
-@app.route("/Publish/Mission",methods=['GET'])
+@app.route("/Publish/Mission",methods=['POST'])
 def publishMission():
     '''
     得到的文件格式为
@@ -685,7 +687,7 @@ def publishMission():
     }
     '''
     value = request.get_json()
-    db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
     cursor = db.cursor()
     sql = 'select register_code from userinfo where id ="{}"'.format(value['id'])
     try:
@@ -711,7 +713,7 @@ def publishMission():
         return jsonify({"error": str(e)}), 500
 
     # 这里显示已经被管理员审核后的内容，具有分页功能
-    @app.route("/TheMissionChecked", methods=['GET'])
+    @app.route("/TheMissionChecked", methods=['POST'])
     def TMC():
         '''
         传入的json为
@@ -720,7 +722,7 @@ def publishMission():
         }
         '''
         page = request.get_json()['page']
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = 'select * from mission_published where checked = "yes" and status="not finished" limit {},4;'.format(
             4 * (page - 1))
@@ -743,7 +745,7 @@ def publishMission():
             return jsonify(e), 500
 
     # 将任务信息加入到自己的接取中
-    @app.route("/CatchTheMission", methods=['GET'])
+    @app.route("/CatchTheMission", methods=['POST'])
     def CTM():
         '''
         传入的json为
@@ -758,7 +760,7 @@ def publishMission():
         username = data['username']
         id = data['id']
         try:
-            db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain",
+            db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain",
                                  cursorclass=pymysql.cursors.DictCursor)
             cursor = db.cursor()
 
@@ -780,7 +782,7 @@ def publishMission():
             return jsonify({"error": str(e)}), 500
 
     # 查询已接取的任务
-    @app.route("/MissionCatched", methods=['GET'])
+    @app.route("/MissionCatched", methods=['POST'])
     def MS():
         ''''
         json
@@ -791,7 +793,7 @@ def publishMission():
         page = int(data['page'])
         offset = (page - 1) * 4  # 假设'page'从1开始
 
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         try:
             with db.cursor(pymysql.cursors.DictCursor) as cursor:
                 sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s LIMIT %s, 4'
@@ -812,7 +814,7 @@ def publishMission():
             db.close()
 
     # 查询接取且已完成的任务
-    @app.route("/CatchMissionFinished", methods=['Get'])
+    @app.route("/CatchMissionFinished", methods=['POST'])
     def CMF():
         ''''
         传入的数据json为
@@ -825,7 +827,7 @@ def publishMission():
         page = int(data['page'])
         offset = (page - 1) * 4  # 假设'page'从1开始
 
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         try:
             with db.cursor(pymysql.cursors.DictCursor) as cursor:
                 sql = 'SELECT * FROM mission_published WHERE volunteer LIKE %s and status="finished" and id in (select id from proof_table where uploader = %s) LIMIT %s, 4'
@@ -846,7 +848,7 @@ def publishMission():
             db.close()
 
     # 下面这个API的作用是完成任务的proof上传,即上传证明材料
-    @app.route("/UpdateProof", methods=['GET'])
+    @app.route("/UpdateProof", methods=['POST'])
     def UP():
         ''''
         传入的json为
@@ -861,7 +863,7 @@ def publishMission():
         id = data['id']
         pu = data['proof']
         uploader = data['uploader']
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor()
         sql = "insert into proof_table value({},'{}','{}')".format(id, pu, uploader)
         try:
@@ -872,14 +874,14 @@ def publishMission():
             return jsonify(e), 500
 
     # 返回交易的信息
-    @app.route("/ShowTX", methods=['GET'])
+    @app.route("/ShowTX", methods=['POST'])
     def STX():
         ''''
         传入json
         {"page":1}
         '''
         page = request.get_json()['page']
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = 'select * from transaction where onchain="not" limit {},6;'.format(6 * (page - 1))
         try:
@@ -918,7 +920,7 @@ def publishMission():
         # 现在生成的sk与pk都是字节串格式
         pk = binascii.hexlify(pk).decode()
         print(sk)
-        db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
+        db = pymysql.connect(host="localhost", port=3306, user="root", passwd="Wu_CRH.0523", db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = 'select adress from pkadress where adress="{}"'.format(value['sender_adress'])
         sql1 = 'select adress from pkadress where adress="{}"'.format(value['recipient'])
@@ -961,7 +963,7 @@ def publishMission():
 
     # 发布交易，将交易加入数据库
 
-    @app.route("/TXPublish", methods=['GET'])
+    @app.route("/TXPublish", methods=['POST'])
     def TXPublish():
         '''
         传入
@@ -980,7 +982,7 @@ def publishMission():
             am = data['Amount']
             fees = data['Fees']
             rep = data['Recipient']  # Fixed capitalization
-            db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+            db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
             cursor = db.cursor()
 
             # Check sender's balance
@@ -1025,7 +1027,7 @@ def publishMission():
             app.logger.error("An error occurred: %s", str(e))
             return jsonify({"error": "Internal Server Error"}), 500
 
-    @app.route("/AddToMyBlock", methods=['GET'])
+    @app.route("/AddToMyBlock", methods=['POST'])
     def ATMB():
         ''''
         传入json
@@ -1046,7 +1048,7 @@ def publishMission():
             fees = data['Fees']
             rep = data['Recipient']  # Fixed capitalization
             miner = data['miner']
-            db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+            db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
             cursor = db.cursor(pymysql.cursors.DictCursor)
             sql = 'select miner from transaction where signature=%s and senderadress=%s and amount=%s and fees=%s and recipient=%s '
             value = (sig, sd, am, fees, rep)
@@ -1081,7 +1083,7 @@ def publishMission():
         data = request.get_json()
         address = data['adress']
         page = data['page']
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = "SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE '%{}%' and onchain='not' limit {},4".format(
             address, 4 * page - 4)
@@ -1113,14 +1115,14 @@ def publishMission():
     def index():
         return len(blockchain)
 
-    @app.route("/tx/merkleroot", methods=['GET'])
+    @app.route("/tx/merkleroot", methods=['POST'])
     def TxRoot():
         ''''传入json
         {"id":adr}
         '''
         tx = []
         id = request.get_json()['id']
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = "SELECT * FROM transaction WHERE miner LIKE '%{}%'".format(id)
         cursor.execute(sql)
@@ -1165,7 +1167,7 @@ def publishMission():
     def chain():
         return jsonify(blockchain.blockchain), 200
 
-    @app.route("/mine", methods=['GET'])  # 最后了宝贝
+    @app.route("/mine", methods=['POST'])  # 最后了宝贝
     def mine():
         ''''
         传入json为
@@ -1189,7 +1191,7 @@ def publishMission():
             target = data['blockheader']['target']
             tx = []
             id = data['id']
-            db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+            db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
             cursor = db.cursor(pymysql.cursors.DictCursor)
             sql = 'select signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE "%{}%"'.format(
                 id)
@@ -1275,14 +1277,14 @@ def publishMission():
             return jsonify(str(e)), 500
 
     # 下面这个api作用是查找交易信息
-    @app.route("/TxInfo", methods=['GET'])
+    @app.route("/TxInfo", methods=['POST'])
     def txinfo():
         ''''传入的消息
         json{"adress":}
         '''
         data = request.get_json()
         adress = data['adress']
-        db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
+        db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
         try:
             sql = 'select signature,senderadress,amount,fees,recipient,tx_nonce from transaction where onchain="not" and (senderadress="{}" or recipient="{}")'.format(
@@ -1293,7 +1295,7 @@ def publishMission():
         except Exception as e:
             return jsonify(e), 500
 
-    @app.route("/AcCreate", methods=['GET'])
+    @app.route("/AcCreate", methods=['POST'])
     def AcCreate():
         '''
         传入json
