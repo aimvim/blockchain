@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     About: typeof import('./src/views/About.vue')['default']
+    AccountDetail: typeof import('./src/components/AccountDetail.vue')['default']
     Count: typeof import('./src/components/Count.vue')['default']
     Detail: typeof import('./src/components/Detail.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']

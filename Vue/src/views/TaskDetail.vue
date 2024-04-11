@@ -67,11 +67,20 @@
         </div>
 
         <div>
-          <span class="taskKey" style="vertical-align: middle">证明材料</span>
+          <span v-if="index === '5' || index === '6'" class="taskKey" style="vertical-align: middle">证明材料</span>
           <span v-if="index === '5' || index === '6'" class="taskValue" style="vertical-align: middle">
             <img v-if="proof !== '' && proof !== 'picture'" :src="proof" alt="">
             <img v-else src="../assets/imgs/pictureNotLoaded.png" alt="图片未加载">
           </span>
+        </div>
+
+        <div v-if="index === '8'" style="margin-left: 35.5vw; margin-top: 1vw">
+          <el-upload class="upload-demo" drag action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" multiple :auto-upload="false">
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text">
+              将文件拖动至这里或 <em>点击上传</em>
+            </div>
+          </el-upload>
         </div>
 
         <!-- TODO: 图片 -->
@@ -79,12 +88,16 @@
           <el-button class="passBtn" @click="passMission" v-loading.fullscreen.lock="fullscreenLoading">通过</el-button>
           <el-button class="RefuseBtn" @click="refuse">不通过</el-button>
         </div>
+        <div class="button" v-if="index === '7' || index === '8'">
+          <el-button v-if="index === '7'" class="confirmMission" @click="catchMission">接取任务</el-button>
+          <el-button v-if="index === '8'" class="confirmMission" @click="submitMission">提交任务</el-button>
+          <el-button v-if="index === '8'" class="RefuseBtn" @click="throwMission">取消</el-button>
+        </div>
       </div>
     </div>
   </div>
 
 </template>
-
 
 <script setup lang="ts" name="TaskDetail">
   import { onMounted, reactive, ref } from "vue"
@@ -94,6 +107,7 @@
   import axios from "axios";
 
   const menu = ref("1")
+  const Username = localStorage.getItem('username')
   const identity = localStorage.getItem('identity')
   const fullscreenLoading = ref(false)
 
@@ -115,6 +129,65 @@
   function refuse() {
     ElMessage.warning('已拒绝')
     goback()
+  }
+
+  function throwMission() {
+    ElMessageBox.confirm('是否取消该任务？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  }
+
+  function catchMission() {
+    ElMessageBox.confirm('是否接取该任务？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      fullscreenLoading.value = true
+      axios.post('http://localhost:5000/CatchTheMission', {
+        id: id,
+        username: Username
+      }).then(res => {
+        if (res.status === 200) {
+          ElMessage.success('操作成功')
+          window.history.go(-1)
+        }
+      }).catch(() => {
+        ElMessage.info('通信错误')
+      }).finally(() => {
+        fullscreenLoading.value = false
+      })
+    }).catch(() => {
+      ElMessage.info('已取消')
+    })
+  }
+
+  function submitMission() {
+    ElMessageBox.confirm('是否提交该任务？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      fullscreenLoading.value = true
+      axios.post('http://localhost:5000/UpdateProof', {
+        id: id,
+        uploader: username,
+        proof: 'awa'
+      }).then(res => {
+        if (res.status === 200) {
+          ElMessage.success('操作成功')
+          window.history.go(-1)
+        }
+      }).catch(() => {
+        ElMessage.info('通信错误')
+      }).finally(() => {
+        fullscreenLoading.value = false
+      })
+    }).catch(() => {
+      ElMessage.info('已取消')
+    })
   }
 
   function passMission() {
@@ -321,6 +394,43 @@
 
   .RefuseBtn:active {
     background-color: rgba(248, 152, 152, 0.3);
+  }
+
+  .confirmMission {
+    width: 5vw;
+    background-color: #40b9dc;
+    color: white;
+    margin-left: 1vw;
+  }
+
+  .confirmMission:hover {
+    background-color: rgba(64, 185, 220, 0.5);
+  }
+
+  .confirmMission:active {
+    background-color: rgba(64, 185, 220, 0.3);
+  }
+
+  /deep/ .el-upload .el-upload-dragger {
+    width: 30.15vw;
+    height: 11vh;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+
+  /deep/ .el-upload-list__item {
+    width: 30.15vw;
+  }
+
+
+  .el-icon--upload {
+    margin: 0;
+  }
+
+  .el-upload__text {
+    margin: 0;
+    font-size: 12px;
   }
 
 </style>

@@ -55,6 +55,9 @@
               <el-menu-item index='4' v-if="identity === '管理员'">已审核发布</el-menu-item>
               <el-menu-item index='5' v-if="identity === '管理员'">未审核提交</el-menu-item>
               <el-menu-item index='6' v-if="identity === '管理员'">已审核提交</el-menu-item>
+              <el-menu-item index='7' v-if="identity === '志愿者'">任务广场</el-menu-item>
+              <el-menu-item index='8' v-if="identity === '志愿者'">已接取</el-menu-item>
+              <el-menu-item index='9' v-if="identity === '志愿者'">已完成</el-menu-item>
             </el-menu>
           </div>
         </el-aside>
@@ -103,7 +106,7 @@
                   <el-input-number v-model.number="form.duration" :precision="1" :step="0.5" :max="24" type="number" step-strictly /> &nbsp;&nbsp; 小时
                 </el-form-item>
                 <el-form-item label="活动奖励" prop="award">
-                  <el-input-number v-model.number="form.award" :precision="2" :step="0.5" :max="100" type="number" /> &nbsp;&nbsp; 时间币
+                  <el-input-number v-model.number="form.award" :precision="1" :step="0.5" :max="100" type="number" /> &nbsp;&nbsp; 时间币
                 </el-form-item>
                 <el-row>
                   <el-col :span="16">
@@ -197,16 +200,18 @@ import {onMounted, reactive, ref, watch} from "vue"
       {min: 0.5, message: "请输入活动时长", trigger: "blur", type: "number"}
     ]
   })
+
   const svg = `
-        <path class="path" d="
-          M 30 15
-          L 28 17
-          M 25.61 25.61
-          A 15 15, 0, 0, 1, 15 30
-          A 15 15, 0, 1, 1, 27.99 7.5
-          L 15 15
-        " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
-      `
+    <path class="path" d="
+      M 30 15
+      L 28 17
+      M 25.61 25.61
+      A 15 15, 0, 0, 1, 15 30
+      A 15 15, 0, 1, 1, 27.99 7.5
+      L 15 15
+    " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
+  `
+
   let detailData = reactive([
     {
       activitytime: 0.,
@@ -226,21 +231,85 @@ import {onMounted, reactive, ref, watch} from "vue"
   ])
   const map = ["ABCD", "EFGH", "IJKL", "MNOP"]
 
-  const createDetailData = () => [{
-    activitytime: 0.,
-    area: "",
-    award: 0.,
-    begintime: "",
-    checked: "",
-    details: "",
-    endtime: "",
-    id: 0,
-    mcharacter: "",
-    name: "",
-    status: "",
-    uploader: "",
-    uploader_company: ""
-  }]
+  function loadVolunteerNC() {
+    loading.value = true
+    axios.post('http://localhost:5000/TheMissionChecked', {
+      page: curPage.value
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function loadVolunteerCM() {
+    loading.value = true
+    axios.post('http://localhost:5000/MissionCatched', {
+      page: curPage.value,
+      id: username
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
+
+  function loadVolunteerCC() {
+    loading.value = true
+    axios.post('http://localhost:5000/CatchMissionFinished', {
+      page: curPage.value,
+      id: username
+    }).then(res => {
+      detailData = reactive([{
+        activitytime: 0.,
+        area: "",
+        award: 0.,
+        begintime: "",
+        checked: "",
+        details: "",
+        endtime: "",
+        id: 0,
+        mcharacter: "",
+        name: "",
+        status: "",
+        uploader: "",
+        uploader_company: ""
+      }])
+      Object.assign(detailData, res.data)
+      total.value = detailData[detailData.length - 1].num
+      loading.value = false
+    })
+  }
 
   const handleSelect2 = (index: string) => {
     taskMenu.value = index
@@ -257,6 +326,12 @@ import {onMounted, reactive, ref, watch} from "vue"
       loadAdminNCS()
     } else if (index === '6'){
       loadAdminCCS()
+    } else if (index === '7') {
+      loadVolunteerNC()
+    } else if (index === '8') {
+      loadVolunteerCM()
+    } else if (index === '9') {
+      loadVolunteerCC()
     }
   }
 
@@ -567,8 +642,12 @@ import {onMounted, reactive, ref, watch} from "vue"
     })
   }
 
-  function handleSelect1() {
-
+  function handleSelect1(index: string) {
+    if (index === '4') {
+      router.push('/home')
+    } else if (index === '5') {
+      router.push('/checkAccount')
+    }
   }
 
   function selectLoad() {
@@ -576,7 +655,7 @@ import {onMounted, reactive, ref, watch} from "vue"
   }
 
   function selectMenu() {
-    if (identity === '用户') {
+    if (identity === '用户' || identity === '志愿者') {
       menu.value = '1'
     } else if (identity === '管理员') {
       menu.value = '4'
@@ -588,6 +667,8 @@ import {onMounted, reactive, ref, watch} from "vue"
       taskMenu.value = '1'
     } else if (identity === '管理员') {
       taskMenu.value = '3'
+    } else if (identity === '志愿者') {
+      taskMenu.value = '7'
     }
   }
 
@@ -602,12 +683,14 @@ import {onMounted, reactive, ref, watch} from "vue"
         localStorage.setItem('index', '1')
       } else if (identity === '管理员') {
         localStorage.setItem('index', '3')
+      } else if (identity === '志愿者') {
+        localStorage.setItem('index', '7')
       }
     }
     selectLoad()
   })
 
-  function dealCommunity(){
+  function dealCommunity() {
     window.location.href='vPersonal';
   }
 

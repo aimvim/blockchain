@@ -5,7 +5,7 @@ import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import Home from '@/views/Home.vue'
 import TaskDetail from '@/views/TaskDetail.vue'
-import AdminTaskDetail from '@/views/AdminTaskDetail.vue'
+import CheckAccount from '@/views/CheckAccount.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,15 +26,15 @@ const router = createRouter({
             component: Home,
         },
         {
-            name: 'taskAudit',
-            path: '/taskAudit',
-            component: TaskAudit,
-        },
-        {
             name: 'taskDetail',
             path: '/taskDetail',
             component: TaskDetail,
             props: true
+        },
+        {
+            name: 'checkAccount',
+            path: '/checkAccount',
+            component: CheckAccount
         },
         {
             path: '/',
