@@ -318,6 +318,7 @@ def ccp():
 #管理员通过proof
 @app.route("/PassProof", methods=['GET'])
 def PP():
+    '''{"id":id}'''
     data = request.get_json()
     mission_id = data['id']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
@@ -344,9 +345,9 @@ def PP():
             cursor.execute(sql)
             uploader = cursor.fetchone()['adress']
             # 插入交易记录
-            sql = 'select signature from pkadress where id = "{}"'.format(mission_id)
+            sql = 'select pk from pkadress where id = "{}"'.format(mission_id)
             cursor.execute(sql)
-            sig = cursor.fetchone()['signature']
+            sig = cursor.fetchone()['pk']
             sql = 'select senderadress from pkadress where id = "{}"'.format(mission_id)
             cursor.execute(sql)
             sed = cursor.fetchone()['senderadress']

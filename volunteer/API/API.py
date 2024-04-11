@@ -86,7 +86,6 @@ def MS():
     user_id = data['id']
     page = int(data['page'])
     offset = (page - 1) * 4  # 假设'page'从1开始
-
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     try:
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -200,74 +199,12 @@ def STX():
 
 
 
-#发布交易A——表中自动返回签名
-@app.route("/sig/tx/publish",methods=['POST'])
-def TxPublish():
-    #返回对交易的签名
-    '''
-    {
-    "private_key":,
-    "sender_adress":,
-    "amount":,
-    "recipient":,
-    "Fees":
-    }
-    :return:
-    '''
-    value = request.get_json()#得到表单中的数据
-    sk = binascii.unhexlify(value['private_key']) #这里将私钥做成字节串格式
-    pk = GenPk(sk) # 生成公钥
-    #现在生成的sk与pk都是字节串格式
-    pk = binascii.hexlify(pk).decode()
-    print(sk)
-    db = pymysql.connect(host="localhost", port=3306, user="root", passwd="123456", db="blockchain")
-    cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql = 'select adress from pkadress where adress="{}"'.format(value['sender_adress'])
-    sql1 = 'select adress from pkadress where adress="{}"'.format(value['recipient'])
-    #检验私钥是否正确
-    sql2= 'select pk from pkadress where adress="{}"'.format(value['sender_adress'])
-    try:
-        cursor.execute(sql)
-        result1 = cursor.fetchone()
-        cursor.execute(sql1)
-        result2 = cursor.fetchone()
-        cursor.execute(sql2)
-        result3=cursor.fetchone()
-        result3 = result3['pk']
-        if result1 == None or result2 == None or result3 != pk:
-            cursor.close()
-            db.close()
-            return "Account Not Exist!"
-        else:
-            sql2 = 'select tx_nonce from pkadress where adress="{}"'.format(value['sender_adress'])
-            cursor.execute(sql2)
-            tx_nonce = cursor.fetchone()['tx_nonce']
-            data = {
-                "inputs": {
-                    "sender_adress": value['sender_adress'],
-                    "tx_nonce": tx_nonce+1 ,
-                },
-                "outputs": {
-                    "amount": value['amount'],
-                    "recipient": value['recipient'],
-                    "Fees": value['Fees']
-                }
-            }
-            print(str(data))
-            Sig = GenSig(sk, str(data))
-            cursor.close()
-            db.close()
-            return jsonify(Sig), 200
-    except Exception as e:
-        return jsonify(str(e)),500
-#发布交易，将交易加入数据库
-
 @app.route("/TXPublish", methods=['GET'])
 def TXPublish():
     '''
     传入
     {
-    “Signature”: sig,
+    "private_key":
     "Senderadress": sed,
     "Amount": am,
     "Fees": fees,
@@ -276,19 +213,67 @@ def TXPublish():
     '''
     try:
         data = request.get_json()
-        sig = data['Signature']
+        #sig = data['Signature']
         sd = data['Senderadress']  # Fixed typo
         am = data['Amount']
         fees = data['Fees']
         rep = data['Recipient']  # Fixed capitalization
+        sk = data['private_key']
+        value={"private_key":sk,"sender_adress":sd,"amount":am,"recipient":rep,"Fees":fees}
+        print(value)
+        sk = binascii.unhexlify(value['private_key'])  # 这里将私钥做成字节串格式
+        print(sk)
+        pk = GenPk(sk)  # 生成公钥
+        # 现在生成的sk与pk都是字节串格式
+        pk = binascii.hexlify(pk).decode()
+        print(pk)
         db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
-        cursor = db.cursor()
+        cursor = db.cursor(pymysql.cursors.DictCursor)
+        sql = 'select adress from pkadress where adress="{}"'.format(value['sender_adress'])
+        sql1 = 'select adress from pkadress where adress="{}"'.format(value['recipient'])
+        # 检验私钥是否正确
+        sql2 = 'select pk from pkadress where adress="{}"'.format(value['sender_adress'])
+        try:
+            print("12")
+            cursor.execute(sql)
+            result1 = cursor.fetchone()
+            cursor.execute(sql1)
+            result2 = cursor.fetchone()
+            cursor.execute(sql2)
+            result3 = cursor.fetchone()
+            result3 = result3['pk']
+            if result1 == None or result2 == None or result3 != pk:
+                cursor.close()
+                db.close()
+                return "Account Not Exist!"
+            else:
+                sql2 = 'select tx_nonce from pkadress where adress="{}"'.format(value['sender_adress'])
+                cursor.execute(sql2)
+                tx_nonce = cursor.fetchone()['tx_nonce']
+                print(tx_nonce)
+                data = {
+                    "inputs": {
+                        "sender_adress": value['sender_adress'],
+                        "tx_nonce": tx_nonce + 1,
+                    },
+                    "outputs": {
+                        "amount": value['amount'],
+                        "recipient": value['recipient'],
+                        "Fees": value['Fees']
+                    }
+                }
+                Sig = GenSig(sk, str(data))
+                sig = Sig
+                print(sig)
+        except Exception as e:
+            return jsonify(str(e)), 500
+
 
         # Check sender's balance
         msql = 'SELECT amount FROM pkadress WHERE adress=%s'
         cursor.execute(msql, (sd,))
         sender_amount = cursor.fetchone()
-        if sender_amount is not None and sender_amount[0] >= (fees + am):
+        if sender_amount is not None and sender_amount['amount'] >= (fees + am):
             # Get necessary data from database
             sql1 = 'SELECT pk FROM pkadress WHERE adress=%s'
             sql2 = 'SELECT adress FROM pkadress WHERE adress=%s'
@@ -299,7 +284,7 @@ def TXPublish():
             result2 = cursor.fetchone()
             cursor.execute(sql3, (sd,))
             result3 = cursor.fetchone()
-
+            print(result3)
             # Check if any necessary account is missing
             if None in (result1, result2, result3):
                 cursor.close()
@@ -308,12 +293,12 @@ def TXPublish():
             else:
                 # Update sender's transaction nonce
                 sql4 = 'UPDATE pkadress SET tx_nonce=%s WHERE adress=%s'
-                cursor.execute(sql4, (result3[0] + 1, sd))
+                cursor.execute(sql4, (result3['tx_nonce'] + 1, sd))
                 db.commit()
 
                 # Insert transaction into database
                 sql = 'INSERT INTO `transaction` (`signature`, `senderadress`, `amount`, `fees`, `recipient`, `onchain`, `tx_nonce`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
-                values = (sig, sd, am, fees, rep, "not", result3[0] + 1)
+                values = (sig, sd, am, fees, rep, "not", result3['tx_nonce'] + 1)
                 cursor.execute(sql, values)
                 db.commit()
                 cursor.close()
@@ -350,6 +335,8 @@ def ATMB():
         miner = data['miner']
         db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
         cursor = db.cursor(pymysql.cursors.DictCursor)
+        cursor.execute('select adress from pkadress where id=%s',(miner))
+        miner = cursor.fetchone()['adress']
         sql = 'select miner from transaction where signature=%s and senderadress=%s and amount=%s and fees=%s and recipient=%s '
         value = (sig, sd, am, fees, rep)
         cursor.execute(sql, value)
@@ -376,17 +363,20 @@ def SMB():
     ''''
     传入json
     {
-    “adress”:adress
+    "username":
     ""page":page
     }
     '''
     data =request.get_json()
-    address= data['adress']
+    username=data['username']
     page=data['page']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
-    sql="SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE '%{}%' and onchain='not' limit {},4".format(address,4*page-4)
+
     try:
+        cursor.execute('select * from pkadress where id=%s',(username))
+        address = cursor.fetchone()['adress']
+        sql = "SELECT signature,senderadress,amount,fees,recipient FROM transaction WHERE miner LIKE '%{}%' and onchain='not' limit {},4".format(address, 4 * page - 4)
         cursor.execute(sql)
         result = cursor.fetchall()
         cursor.execute("select count(*) as num FROM transaction WHERE miner LIKE '%{}%' and onchain='not'".format(address))
@@ -417,12 +407,14 @@ def index():
 @app.route("/tx/merkleroot", methods=['GET'])
 def TxRoot():
     ''''传入json
-    {"id":adr}
+    {"id":user}
     '''
     tx = []
     id = request.get_json()['id']
     db = pymysql.connect(host="localhost", user="root", passwd="123456", port=3306, db="blockchain")
     cursor = db.cursor(pymysql.cursors.DictCursor)
+    cursor.execute('select * from pkadress where id=%s',(id))
+    id = cursor.fetchone()['adress']
     sql = "SELECT * FROM transaction WHERE miner LIKE '%{}%'".format(id)
     cursor.execute(sql)
     result = cursor.fetchall()
