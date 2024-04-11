@@ -343,6 +343,7 @@
     .ac1{
       background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
       color: #fff;
+
     }
   
   </style>

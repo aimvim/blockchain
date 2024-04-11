@@ -9,9 +9,11 @@
           </div>
             <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                      class="menu" mode="horizontal" @select="handleSelect2" :ellipsis="false"> <!-- 菜单激活回调 -->
-              <el-menu-item index="1" v-if="identity === '用户'">任务中心</el-menu-item>
+              <el-menu-item index="1" v-if="identity === '用户' || identity === '志愿者'">任务中心</el-menu-item>
               <el-menu-item index="2" v-if="identity === '管理员'">任务审核</el-menu-item>
-              <el-menu-item index="3" v-if="identity === '管理员'">账号审核</el-menu-item> <!-- TODO -->
+              <el-menu-item index="3" v-if="identity === '管理员'">账号审核</el-menu-item>
+              <el-menu-item index="4" v-if="identity === '志愿者'">交易社区</el-menu-item><!-- TODO -->
+              <el-menu-item index="5" v-if="identity === '志愿者'">我的区块</el-menu-item>
             </el-menu>
           <el-popover popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="13vw">
             <template #reference>
@@ -67,8 +69,8 @@
         </div>
 
         <div>
-          <span v-if="index === '5' || index === '6'" class="taskKey" style="vertical-align: middle">证明材料</span>
-          <span v-if="index === '5' || index === '6'" class="taskValue" style="vertical-align: middle">
+          <span v-if="index === '5' || index === '6' || index === '9'" class="taskKey" style="vertical-align: middle">证明材料</span>
+          <span v-if="index === '5' || index === '6' || index === '9'" class="taskValue" style="vertical-align: middle">
             <img v-if="proof !== '' && proof !== 'picture'" :src="proof" alt="">
             <img v-else src="../assets/imgs/pictureNotLoaded.png" alt="图片未加载">
           </span>
@@ -83,7 +85,7 @@
           </el-upload>
         </div>
 
-        <!-- TODO: 图片 -->
+        <!-- TODO: 志愿者已提交图片 -->
         <div class="button" v-if="index === '3' || index === '5'">
           <el-button class="passBtn" @click="passMission" v-loading.fullscreen.lock="fullscreenLoading">通过</el-button>
           <el-button class="RefuseBtn" @click="refuse">不通过</el-button>
@@ -96,7 +98,6 @@
       </div>
     </div>
   </div>
-
 </template>
 
 <script setup lang="ts" name="TaskDetail">
@@ -105,6 +106,7 @@
   import { Back } from "@element-plus/icons-vue"
   import {ElMessage, ElMessageBox} from "element-plus";
   import axios from "axios";
+  import router from "@/router";
 
   const menu = ref("1")
   const Username = localStorage.getItem('username')
@@ -117,6 +119,14 @@
 
   const { query } = useRoute()
   const { id, index, name, area, date, duration, award, type, details, checked, status, username, institution, proof } = query
+
+  function handleSelect2(ind: string) {
+    if (ind === '1' || ind === '2') {
+      router.push('/home')
+    } else if (ind === '3') {
+      router.push('/CheckAccount')
+    } // TODO
+  }
 
   function selectMenu() {
     if (identity === '用户') {
@@ -177,7 +187,7 @@
         proof: 'awa'
       }).then(res => {
         if (res.status === 200) {
-          ElMessage.success('操作成功')
+          ElMessage.success('已提交，请等待管理员审核')
           window.history.go(-1)
         }
       }).catch(() => {
@@ -232,6 +242,7 @@
   onMounted(() => {
     selectMenu()
   })
+
 </script>
 
 

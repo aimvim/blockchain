@@ -10,6 +10,7 @@ declare module 'vue' {
     About: typeof import('./src/views/About.vue')['default']
     AccountDetail: typeof import('./src/components/AccountDetail.vue')['default']
     Count: typeof import('./src/components/Count.vue')['default']
+    DealDetail: typeof import('./src/components/DealDetail.vue')['default']
     Detail: typeof import('./src/components/Detail.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElButton: typeof import('element-plus/es')['ElButton']

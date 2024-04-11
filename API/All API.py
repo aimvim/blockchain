@@ -1066,9 +1066,9 @@ def TXPublish():
                 db.commit()
                 cursor.close()
                 db.close()
-                return jsonify(Sig), 200
-        except Exception as e:
-            return jsonify(str(e)), 500
+                return jsonify(sig), 200
+    except Exception as e:
+        return jsonify(str(e)), 500
 
     # 发布交易，将交易加入数据库
 
@@ -1223,8 +1223,8 @@ def TXPublish():
             cursor.close()
             db.close()
             return jsonify(result), 200  # 返回消息的全部信息
-    except Exception as e:
-        return jsonify(str(e)), 500
+        except Exception as e:
+            return jsonify(str(e)), 500
 
 
 # 返回prehash的值

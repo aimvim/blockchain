@@ -6,6 +6,7 @@ import Register from '@/views/Register.vue'
 import Home from '@/views/Home.vue'
 import TaskDetail from '@/views/TaskDetail.vue'
 import CheckAccount from '@/views/CheckAccount.vue'
+import DealCommunity from '@/views/DealCommunity.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -35,6 +36,11 @@ const router = createRouter({
             name: 'checkAccount',
             path: '/checkAccount',
             component: CheckAccount
+        },
+        {
+            name: 'dealCommunity',
+            path: '/dealCommunity',
+            component: DealCommunity
         },
         {
             path: '/',

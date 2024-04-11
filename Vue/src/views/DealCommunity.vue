@@ -23,23 +23,21 @@
   
               
               <template #default>
-  
-  
                 <div class="popover" id="popover">
-  
-  
-                  <div class="Vaccount ac1"><span class="pText">地址：  {{ address1 }}</span> <br><span class="pText">交易次数:{{ dealtimes1 }}</span><br>
+                  <div class="Vaccount ac1">
+                    <span class="pText">地址：{{ address1 }}</span><br>
+                    <span class="pText">交易次数:{{ dealtimes1 }}</span><br>
                     <span>时间币：</span>{{ timeCoin1 }}
                   </div>
-                  <div class="Vaccount ac2"><span class="pText">地址： {{ address2 }}</span> <br><span class="pText">交易次数:{{ dealtimes2 }}</span><br>
+                  <div class="Vaccount ac2">
+                    <span class="pText">地址：{{ address2 }}</span><br>
+                    <span class="pText">交易次数:{{ dealtimes2 }}</span><br>
                     <span>时间币：</span>{{ timeCoin2 }}
                   </div>
-                  <div class="Vaccount ac3"><span class="pText">地址： {{ address3 }}</span> <br><span class="pText">交易次数:{{ dealtimes3 }}</span><br>
+                  <div class="Vaccount ac3"><span class="pText">地址：{{ address3 }}</span><br>
+                    <span class="pText">交易次数:{{ dealtimes3 }}</span><br>
                     <span>时间币：</span>{{ timeCoin3 }}
                   </div>
-  
-  
-                  
                 </div>
               </template>
 
@@ -56,7 +54,6 @@
     <button class="backbtn" @click="goback()" >发布交易</button>
     <div style="margin-left: 12vw;">
       <div style="display: flex;">
-
         <div class="dealInfo">&nbsp;Recieipient:{{  }} <br>
           &nbsp;SenderAddress:{{  }} <br>
           &nbsp;Fees:{{  }} 
@@ -90,11 +87,9 @@
         </div><div class="inforight">+</div>
     </div>
     </div>
-
   </template>
   
-  
-<script setup lang="ts" name="Home">
+<script setup lang="ts" name="DealCommunity">
     import {reactive, ref} from "vue"
     import {Search} from "@element-plus/icons-vue"
     import Detail from "../components/Detail.vue"
@@ -136,7 +131,6 @@
     })
   
     const handleSelect2 = (index: string) => {
-      console.log(index)
       curIndex.value = index
     }
   

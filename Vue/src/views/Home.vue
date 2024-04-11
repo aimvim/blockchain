@@ -10,12 +10,12 @@
             <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                      class="menu" mode="horizontal" @select="handleSelect1" :ellipsis="false"> <!-- 菜单激活回调 -->
               <el-menu-item index="1" v-if="identity === '用户' || identity === '志愿者'">任务中心</el-menu-item>
-              <el-menu-item v-if="identity === '志愿者'" index="2" @click='dealCommunity'>交易社区</el-menu-item>
+              <el-menu-item v-if="identity === '志愿者'" index="2">交易社区</el-menu-item>
               <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
               <el-menu-item v-if="identity === '管理员'" index="4">任务审核</el-menu-item>
               <el-menu-item v-if="identity === '管理员'" index="5">账号审核</el-menu-item>
             </el-menu>
-          <el-popover popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="13vw">
+          <el-popover trigger="hover" popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" :width="width">
             <template #reference>
               <div class="title-icon">
                 <el-icon color="#fff" style="margin-left: 13px; margin-top: 11px" size="30px"><UserFilled /></el-icon>
@@ -27,16 +27,71 @@
                 <br>
                 <span class="pText">机构：{{ institution }}</span>
               </div>
-              <div class="popover" id="popover" v-if="identity === '志愿者'">
-                <div class="Vaccount ac1"><span class="pText">地址：  {{ address1 }}</span> <br><span class="pText">交易次数:{{ dealtimes1 }}</span><br>
-                  <span>时间币：</span>{{ timeCoin1 }}
-                </div>
-                <div class="Vaccount ac2"><span class="pText">地址： {{ address2 }}</span> <br><span class="pText">交易次数:{{ dealtimes2 }}</span><br>
-                  <span>时间币：</span>{{ timeCoin2 }}
-                </div>
-                <div class="Vaccount ac3"><span class="pText">地址： {{ address3 }}</span> <br><span class="pText">交易次数:{{ dealtimes3 }}</span><br>
-                  <span>时间币：</span>{{ timeCoin3 }}
-                </div>
+              <div class="popover" v-if="identity === '志愿者'">
+                <el-radio-group v-model="accountNumber">
+                  <el-radio-button class="acButton" :value="1">
+                    <div class="VAccount">
+                      <div style="margin-bottom: 1.5vh">
+                        <div style="display: flex; margin-bottom: 1vh">
+                          <span class="acText1">地址: {{ address1 }}</span><br>
+                          <span class="acText2">交易次数: {{ dealTimes1 }}</span><br>
+                          <el-button v-if="accountNumber === 1" class="acClose" :icon="CircleCloseFilled"></el-button>
+                          <el-button v-else class="acClose" style="color: #40b9dc" :icon="CircleClose"></el-button>
+                        </div>
+                        <div style="margin-top: 1.5vh; display: flex">
+                          <el-icon v-if="accountNumber === 1" color="white" size="20px" style="margin-left: 1.2vw"><Coin /></el-icon>
+                          <el-icon v-else color="#40b9dc" size="20px" style="margin-left: 1.2vw"><Coin /></el-icon>
+                          <span class="acText3">时间币: &nbsp;</span><span style="font-size: 18px; width: 6vw"> {{ timeCoin1 }}</span>
+                          <el-button v-if="accountNumber === 1" class="acWatch">查看</el-button>
+                          <el-button v-else class="acNotWatch">查看</el-button>
+                        </div>
+                      </div>
+                    </div>
+                  </el-radio-button>
+                  <el-radio-button class="acButton" :value="2">
+                    <div class="VAccount">
+                      <div style="margin-bottom: 1.5vh">
+                        <div style="display: flex; margin-bottom: 1vh">
+                          <span class="acText1">地址: {{ address2 }}</span><br>
+                          <span class="acText2">交易次数: {{ dealTimes2 }}</span><br>
+                          <el-button v-if="accountNumber === 2" class="acClose" :icon="CircleCloseFilled"></el-button>
+                          <el-button v-else class="acClose" style="color: #40b9dc" :icon="CircleClose"></el-button>
+                        </div>
+                        <div style="margin-top: 1.5vh; display: flex">
+                          <el-icon v-if="accountNumber === 2" color="white" size="20px" style="margin-left: 1.2vw"><Coin /></el-icon>
+                          <el-icon v-else color="#40b9dc" size="20px" style="margin-left: 1.2vw"><Coin /></el-icon>
+                          <span class="acText3">时间币: &nbsp;</span><span style="font-size: 18px; width: 6vw"> {{ timeCoin2 }}</span>
+                          <el-button v-if="accountNumber === 2" class="acWatch">查看</el-button>
+                          <el-button v-else class="acNotWatch">查看</el-button>
+                        </div>
+                      </div>
+                    </div>
+                  </el-radio-button>
+                  <el-radio-button class="acButton" :value="3">
+                    <div class="VAccount">
+                      <div style="margin-bottom: 1.5vh">
+                        <div style="display: flex; margin-bottom: 1vh">
+                          <span class="acText1">地址: {{ address3 }}</span><br>
+                          <span class="acText2">交易次数: {{ dealTimes3 }}</span><br>
+                          <el-button v-if="accountNumber === 3" class="acClose" :icon="CircleCloseFilled"></el-button>
+                          <el-button v-else class="acClose" style="color: #40b9dc" :icon="CircleClose"></el-button>
+                        </div>
+                        <div style="margin-top: 1.5vh; display: flex">
+                          <el-icon v-if="accountNumber === 3" color="white" size="20px" style="margin-left: 1.2vw"><Coin /></el-icon>
+                          <el-icon v-else color="#40b9dc" size="20px" style="margin-left: 1.2vw"><Coin /></el-icon>
+                          <span class="acText3">时间币: &nbsp;</span><span style="font-size: 18px; width: 6vw"> {{ timeCoin3 }}</span>
+                          <el-button v-if="accountNumber === 3" class="acWatch">查看</el-button>
+                          <el-button v-else class="acNotWatch">查看</el-button>
+                        </div>
+                      </div>
+                    </div>
+                  </el-radio-button>
+                </el-radio-group>
+              </div>
+              <div v-if="identity === '志愿者'" style="margin-top: 3vh; margin-left: 8vw">
+                <el-button class="add">
+                  <el-icon size="2vw"><CirclePlus /></el-icon>
+                </el-button>
               </div>
             </template>
           </el-popover>
@@ -145,8 +200,8 @@
 </template>
 
 <script setup lang="ts" name="Home">
-import {onMounted, reactive, ref, watch} from "vue"
-  import {Search} from "@element-plus/icons-vue"
+  import {onMounted, reactive, ref, watch} from "vue"
+  import {CircleClose, CircleCloseFilled, CirclePlus, Search} from "@element-plus/icons-vue"
   import Detail from "../components/Detail.vue"
   import axios from "axios";
   import {ElMessage} from "element-plus";
@@ -165,6 +220,8 @@ import {onMounted, reactive, ref, watch} from "vue"
   const fullscreenLoading = ref(false)
   const formRef = ref()
   const curPage = ref(1)
+  const width = ref("13vw")
+  const accountNumber = ref(1)
   const form = reactive({
     name: "",
     location: "",
@@ -230,6 +287,16 @@ import {onMounted, reactive, ref, watch} from "vue"
     },
   ])
   const map = ["ABCD", "EFGH", "IJKL", "MNOP"]
+
+  const address1 ='asdgre5j7';
+  const address2 = 'asedfjh3r';
+  const address3 = 'ytrfdcvb3';
+  const dealTimes1 = 222;
+  const dealTimes2 = 56;
+  const dealTimes3 = 3;
+  const timeCoin1 = 2311.01;
+  const timeCoin2 = 547.50;
+  const timeCoin3 = 14.92;
 
   function loadVolunteerNC() {
     loading.value = true
@@ -426,18 +493,6 @@ import {onMounted, reactive, ref, watch} from "vue"
       }
     })
   }
-  //add for new
-  var address1 ='asdadasdas';
-  var address2 = 'adsasdaqwe';
-  var address3 = 'awdasdwgggg';
-  var dealtimes1 = 222;
-  var dealtimes2 = 333;
-  var dealtimes3 = 123;
-  var timeCoin1 = 2.3;
-  var timeCoin2 = 23.3;
-  var timeCoin3 = 0;
-  var accountNumber = 3;
-  var popover = document.getElementById("popover");
 
   function loadUserPublished() {
     loading.value = true
@@ -643,10 +698,14 @@ import {onMounted, reactive, ref, watch} from "vue"
   }
 
   function handleSelect1(index: string) {
-    if (index === '4') {
+    if (index === '1' || index === '4') {
       router.push('/home')
     } else if (index === '5') {
       router.push('/checkAccount')
+    } else if (index === '2') {
+      router.push('/dealCommunity')
+    } else if (index === '3') {
+
     }
   }
 
@@ -688,6 +747,11 @@ import {onMounted, reactive, ref, watch} from "vue"
       }
     }
     selectLoad()
+    if (identity === '用户') {
+      width.value = '13vw'
+    } else if (identity === '志愿者') {
+      width.value = '19vw'
+    }
   })
 
   function dealCommunity() {
@@ -831,16 +895,74 @@ import {onMounted, reactive, ref, watch} from "vue"
   }
 
   /* add for new */
-  .Vaccount{
-    text-align: center;
-    width: 12vw;
+  .VAccount {
+    text-align: left;
+    width: 16vw;
     border: #40b9dc solid 1px;
-    border-radius: 1vh;
+    border-radius: 7px;
   }
 
-  .ac1 {
-    background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
-    color: #fff;
+  @property --myColor1 {
+    syntax: "<color>";
+    initial-value: #fff;
+    inherits: false;
+  }
+
+  @property --myColor2 {
+    syntax: "<color>";
+    initial-value: #fff;
+    inherits: false;
+  }
+
+  @property --myColor3 {
+    syntax: "<color>";
+    initial-value: #fff;
+    inherits: false;
+  }
+
+  /deep/ .acButton .el-radio-button__inner {
+    border: 0;
+    padding: 0;
+    margin-left: 0.75vw;
+    margin-top: 1vh;
+    margin-bottom: 1.5vh;
+    border-radius: 7px;
+    --myColor1: #fff;
+    --myColor2: #fff;
+    --myColor3: #fff;
+    background: linear-gradient(to right, var(--myColor1), var(--myColor2) 45%, var(--myColor3));
+    color: #40b9dc;
+    transition: color 0.5s 0s ease-in-out, --myColor1 0.5s 0s ease-in-out, --myColor2 0.5s 0s ease-in-out, --myColor3 0.5s 0s ease-in-out;
+  }
+
+  /deep/ .acButton .el-radio-button__original-radio:hover + .el-radio-button__inner {
+    border: 0;
+    padding: 0;
+    margin-left: 0.75vw;
+    margin-top: 1vh;
+    margin-bottom: 1.5vh;
+    --myColor1: rgba(0, 0, 0, 0.2);
+    --myColor2: rgba(0, 0, 0, 0.2);
+    --myColor3: rgba(0, 0, 0, 0.2);
+    background: linear-gradient(to right, var(--myColor1), var(--myColor2) 45%, var(--myColor3));
+    transition: color 0.5s 0s ease-in-out, --myColor1 0.5s 0s ease-in-out, --myColor2 0.5s 0s ease-in-out, --myColor3 0.5s 0s ease-in-out;
+    color: rgba(44, 165, 200, 1);
+    box-shadow: 0 0 0 0 rgba(64, 185, 220, 0.5);
+  }
+
+  /deep/ .acButton .el-radio-button__original-radio:checked + .el-radio-button__inner {
+    border: 0;
+    padding: 0;
+    margin-left: 0.75vw;
+    margin-top: 1vh;
+    margin-bottom: 1.5vh;
+    background: linear-gradient(to right, var(--myColor1), var(--myColor2) 45%, var(--myColor3));
+    transition: --myColor1 0.5s 0s ease-in-out, --myColor2 0.5s 0s ease-in-out, --myColor3 0.5s 0s ease-in-out, color 0.5s 0s ease-in-out;
+    --myColor1: #0889d1;
+    --myColor2: #1d91d3;
+    --myColor3: #35accf;
+    color: white;
+    box-shadow: 0 0 0 0 rgba(64, 185, 220, 0.5);
   }
 
   .detail {
@@ -856,6 +978,98 @@ import {onMounted, reactive, ref, watch} from "vue"
 
   .detail:active {
     background-color: rgba(64, 185, 220, 0.3);
+  }
+
+  .acText1 {
+    margin-left: 1.2vw;
+    margin-top: 2vh;
+    font-size: 15px;
+    width: 7.5vw;
+    font-family: "Consolas";
+  }
+
+  .acText2 {
+    margin-left: 0.5vw;
+    margin-top: 2vh;
+    font-size: 15px;
+    width: 5vw;
+    font-family: "Consolas";
+  }
+
+  .acText3 {
+    margin-left: 0.3vw;
+    margin-top: 0.3vh;
+    font-size: 15px;
+    font-family: "Consolas";
+  }
+
+  .acClose {
+    width: 0.1vw;
+    background: transparent;
+    border: 0;
+    color: white;
+    margin-left: 0.5vw;
+    border-radius: 50px;
+  }
+
+  .acClose:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .acClose:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .acWatch {
+    width: 2vw;
+    height: 2vh;
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 12px;
+    border: 0;
+    border-radius: 6px;
+  }
+
+  .acWatch:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .acWatch:active {
+    background: rgba(255, 255, 255, 0.8);
+  }
+
+  .acNotWatch {
+    width: 2vw;
+    height: 2vh;
+    background-color: #e3f5fa;
+    color: #40b9dc;
+    font-size: 12px;
+    border: 0;
+    border-radius: 6px;
+  }
+
+  .acNotWatch:hover {
+    background-color: #c6f0ff;
+  }
+
+  .acNotWatch:active {
+    background-color: #a8eaff;
+  }
+
+  .add {
+    width: 1.5vw;
+    height: 1.5vw;
+    color: #40b9dc;
+    border-radius: 50px;
+    border: 0;
+  }
+
+  .add:hover {
+    background-color: rgba(64, 185, 220, 0.4);
+  }
+
+  .add:active {
+    background-color: rgba(64, 185, 220, 0.2);
   }
 
 </style>
