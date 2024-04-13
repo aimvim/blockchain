@@ -95,7 +95,7 @@
     </el-container>
   </div>
   <div style="display: flex">
-    <el-button class="openTask" @click="deal = true">发布交易</el-button>
+    <el-button class="openTask" @click="goback">返回</el-button>
     <el-input v-model="search" style="width: 11.46vw; margin-left: 50vw; height: 3.5vh; margin-top: 3vh"
             :prefix-icon="Search" placeholder="请输入" clearable/>
     <el-button class="detail" style="margin-left: 10px; margin-right: 0; margin-top: 3vh">搜索</el-button>
@@ -104,16 +104,16 @@
   <div style="margin-left: 12vw; width: 80vw" v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
                   element-loading-svg-view-box="-10, -10, 50, 50" element-loading-background="rgba(122, 122, 122, 0.8)">
     <div style="display: flex;">
-      <DealDetail :detail="dealData[0]" style="margin-left: 4vw" :index="1"/>
-      <DealDetail :detail="dealData[1]" style="margin-left: 4vw" :index="1"/>
+      <DealDetail :detail="dealData[0]" style="margin-left: 4vw" :index="2"/>
+      <DealDetail :detail="dealData[1]" style="margin-left: 4vw" :index="2"/>
     </div>
     <div style="display: flex;">
-      <DealDetail :detail="dealData[2]" style="margin-left: 4vw" :index="1"/>
-      <DealDetail :detail="dealData[3]" style="margin-left: 4vw" :index="1"/>
+      <DealDetail :detail="dealData[2]" style="margin-left: 4vw" :index="2"/>
+      <DealDetail :detail="dealData[3]" style="margin-left: 4vw" :index="2"/>
     </div>
     <div style="display: flex;">
-      <DealDetail :detail="dealData[4]" style="margin-left: 4vw" :index="1"/>
-      <DealDetail :detail="dealData[5]" style="margin-left: 4vw" :index="1"/>
+      <DealDetail :detail="dealData[4]" style="margin-left: 4vw" :index="2"/>
+      <DealDetail :detail="dealData[5]" style="margin-left: 4vw" :index="2"/>
     </div>
   </div>
   <div style="text-align: center; display: flex; margin-left: 20vw; margin-top: 3vh">
@@ -121,7 +121,7 @@
     <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="change" :total="total"></el-pagination>
   </div>
 </template>
-  
+
 <script setup lang="ts" name="DealCommunity">
   import {reactive, ref, onMounted} from "vue"
   import {CircleClose, CircleCloseFilled, CirclePlus, Search} from "@element-plus/icons-vue"
@@ -129,8 +129,8 @@
   import axios from "axios";
   import {ElMessage} from "element-plus";
   import router from "@/router";
-  
-  const menu = ref("2")
+
+  const menu = ref("3")
   const identity = localStorage.getItem('identity')
   const username = localStorage.getItem('username')
   const loading = ref(false)
@@ -138,7 +138,6 @@
   const total = ref(0)
   const curPage = ref(1)
   const curIndex = ref('1')
-  const fullscreenLoading = ref(false)
   const accountNumber = ref(1)
   let dealData = reactive([{
     amount: '',
@@ -161,6 +160,8 @@
   const timeCoin2 = 547.50;
   const timeCoin3 = 14.92;
 
+  // TODO: 假数据
+
   const svg = `
   <path class="path" d="
     M 30 15
@@ -171,6 +172,10 @@
     L 15 15
   " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
 `
+
+  function goback() {
+    window.history.go(-1);
+  }
 
   const handleSelect2 = (index: string) => {
     curIndex.value = index
@@ -216,7 +221,7 @@
   })
 
 </script>
-  
+
 <style scoped>
   .title {
     width: 15vw;
@@ -512,5 +517,5 @@
   .pagination {
     margin-left: 1vw;
   }
-  
+
 </style>

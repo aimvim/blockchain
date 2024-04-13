@@ -7,19 +7,18 @@
             <span style="margin-left: 1.3vw; font-size:1.5vw">时间银行管理系统</span><br>
             <span style="font-size: 0.9vw">Time Bank Management System</span>
           </div>
-            <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
-                     class="menu" mode="horizontal" @select="handleSelect2" :ellipsis="false"> <!-- 菜单激活回调 -->
-              <el-menu-item index="1">任务中心</el-menu-item>
-              <el-menu-item v-if="identity === '志愿者'" index="2">交易社区</el-menu-item>
-              <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
-            </el-menu>
-          <el-popover trigger="hover" popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="19vw">
+          <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
+                   class="menu" mode="horizontal" @select="handleSelect2" :ellipsis="false"> <!-- 菜单激活回调 -->
+            <el-menu-item index="1">任务中心</el-menu-item>
+            <el-menu-item v-if="identity === '志愿者'" index="2">交易社区</el-menu-item>
+            <el-menu-item v-if="identity === '志愿者'" index="3">我的区块</el-menu-item>
+          </el-menu>
+          <el-popover popper-style="border: #40b9dc solid 1px; border-radius: 8px" offset="5" width="19vw">
             <template #reference>
               <div class="title-icon">
                 <el-icon color="#fff" style="margin-left: 13px; margin-top: 11px" size="30px"><UserFilled /></el-icon>
               </div>
             </template>
-
             <template #default>
               <div class="popover" v-if="identity === '志愿者'">
                 <el-radio-group v-model="accountNumber">
@@ -92,54 +91,75 @@
         </div>
       </el-header>
       <div class="h-separate"></div>
-    </el-container>
-  </div>
-  <div style="display: flex">
-    <el-button class="openTask" @click="deal = true">发布交易</el-button>
-    <el-input v-model="search" style="width: 11.46vw; margin-left: 50vw; height: 3.5vh; margin-top: 3vh"
-            :prefix-icon="Search" placeholder="请输入" clearable/>
-    <el-button class="detail" style="margin-left: 10px; margin-right: 0; margin-top: 3vh">搜索</el-button>
-    <el-button style="margin-left: 10px; margin-top: 3vh">重置</el-button>
-  </div>
-  <div style="margin-left: 12vw; width: 80vw" v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
+      <el-container>
+      <el-main style="display: flex; padding: 0">
+        <div class="leftcontent">
+          <div class="chain" ><div class="line" style="margin-left: 5vw;"></div>
+            <el-button class="block" :icon="ZoomIn" style="margin-left: 8vw" @click="fake"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button class="block" :icon="ZoomIn"></el-button>
+          </div>
+          <hr color=#40b9dc SIZE=1>
+          <button class="dealbtn">交易</button>
+          <div style="width: 63vw;" v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
                   element-loading-svg-view-box="-10, -10, 50, 50" element-loading-background="rgba(122, 122, 122, 0.8)">
-    <div style="display: flex;">
-      <DealDetail :detail="dealData[0]" style="margin-left: 4vw" :index="1"/>
-      <DealDetail :detail="dealData[1]" style="margin-left: 4vw" :index="1"/>
-    </div>
-    <div style="display: flex;">
-      <DealDetail :detail="dealData[2]" style="margin-left: 4vw" :index="1"/>
-      <DealDetail :detail="dealData[3]" style="margin-left: 4vw" :index="1"/>
-    </div>
-    <div style="display: flex;">
-      <DealDetail :detail="dealData[4]" style="margin-left: 4vw" :index="1"/>
-      <DealDetail :detail="dealData[5]" style="margin-left: 4vw" :index="1"/>
-    </div>
-  </div>
-  <div style="text-align: center; display: flex; margin-left: 20vw; margin-top: 3vh">
-    <span style="margin-top: 2vh; margin-left: 20vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
-    <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="change" :total="total"></el-pagination>
+            <div style="display: flex;">
+              <DealDetail :detail="dealData[0]" style="margin-bottom: 3vh" :index="1"/>
+              <DealDetail :detail="dealData[1]" style="margin-bottom: 3vh" :index="1"/>
+            </div>
+            <div style="display: flex;">
+              <DealDetail :detail="dealData[2]" style="margin-bottom: 3vh" :index="1"/>
+              <DealDetail :detail="dealData[3]" style="margin-bottom: 3vh" :index="1"/>
+            </div>
+          </div>
+          <div style="text-align: center; display: flex; margin-top: 2vh; margin-left: 5vw">
+            <span style="margin-top: 2vh; margin-left: 17vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
+            <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="change" :total="total"></el-pagination>
+          </div>
+        </div>
+        <div class="rightcontent">
+          <div class="righttop" style="height: 55%;">
+            <span class="infoKey" style="margin-top: 6vh;">version</span>{{ version }} <br>
+            <span class="infoKey">prehash</span>{{  }} <br>
+            <span class="infoKey">index</span>{{  }} <br>
+            <span class="infoKey">nonce</span>{{  }} <br>
+            <span class="infoKey">markle_root</span>{{  }} <br>
+            <span class="infoKey">target</span>{{  }} <br>
+            <button class="rightbtn">提交</button>
+          </div>
+          <hr color=#40b9dc SIZE=1>
+          <div class="rightbottom" style="text-align: center;vertical-align: middle;">
+            json
+          </div>
+        </div>
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
   
-<script setup lang="ts" name="DealCommunity">
-  import {reactive, ref, onMounted} from "vue"
-  import {CircleClose, CircleCloseFilled, CirclePlus, Search} from "@element-plus/icons-vue"
-  import Detail from "../components/Detail.vue"
+<script setup lang="ts" name="MyBlock">
+import {onMounted, reactive, ref} from "vue"
+import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@element-plus/icons-vue"
+  import Detail from "../components/DealDetail.vue"
+  import router from "@/router";
   import axios from "axios";
   import {ElMessage} from "element-plus";
-  import router from "@/router";
-  
-  const menu = ref("2")
+
+  const menu = ref("3")
   const identity = localStorage.getItem('identity')
   const username = localStorage.getItem('username')
-  const loading = ref(false)
-  const search = ref("")
   const total = ref(0)
+  const loading = ref(false)
   const curPage = ref(1)
   const curIndex = ref('1')
-  const fullscreenLoading = ref(false)
   const accountNumber = ref(1)
+  const fullscreenLoading = ref(false)
   let dealData = reactive([{
     amount: '',
     fees: '',
@@ -150,16 +170,6 @@
     signature: '',
     tx_nonce: ''
   },])
-
-  const address1 ='asdgre5j7';
-  const address2 = 'asedfjh3r';
-  const address3 = 'ytrfdcvb3';
-  const dealTimes1 = 222;
-  const dealTimes2 = 56;
-  const dealTimes3 = 3;
-  const timeCoin1 = 2311.01;
-  const timeCoin2 = 547.50;
-  const timeCoin3 = 14.92;
 
   const svg = `
   <path class="path" d="
@@ -179,17 +189,32 @@
     } else if (index === '2') {
       router.push('/dealCommunity')
     } else if (index === '3') {
-      router.push('/MyBlock')
+      router.push('/myBlock')
     }
   }
+    
+  const address1 ='asdgre5j7';
+  const address2 = 'asedfjh3r';
+  const address3 = 'ytrfdcvb3';
+  const dealTimes1 = 222;
+  const dealTimes2 = 56;
+  const dealTimes3 = 3;
+  const timeCoin1 = 2311.01;
+  const timeCoin2 = 547.50;
+  const timeCoin3 = 14.92;
+  const version = 1.0;
 
   function change() {
     load()
   }
 
+  function fake() {
+    router.push('/blockDetail')
+  }
+
   function load() {
     loading.value = true
-    axios.post('http://localhost:5000/ShowTX', {
+    axios.post('http://localhost:5000/ShowTX4', {
       page: curPage.value,
     }).then(res => {
       dealData = reactive([{
@@ -220,7 +245,7 @@
 <style scoped>
   .title {
     width: 15vw;
-    margin: 10px 25px 0;
+    margin: 10px 20px 0;
     background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
     -webkit-background-clip: text;
     background-clip: text;
@@ -271,46 +296,100 @@
     z-index: 50;
   }
 
-  :deep(.taskMenu .el-menu-item:first-child) {
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-  }
-
-  :deep(.taskMenu .el-menu-item:last-child) {
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-  }
-
-  .search {
-    margin-left: 52vw;
-    margin-top: 3vh;
-  }
-
   .pagination {
     margin-top: 2vh;
     margin-left: 1vw;
   }
 
-  ::v-deep .form .el-form-item__label {
-    font-size: 14px;
-    color: rgb(120, 120, 120);
-    font-family: '黑体';
+  .leftcontent {
+    height: 91vh;
+    width: 65vw;
+    border-right: #40b9dc solid 1px;
   }
 
-  .popover {
-    color: #40b9dc;
-    font-size: 16px;
-    width: 19vw;
+  .rightcontent {
+      width: 35vw;
   }
 
-  .title {
-    width: 15vw;
-    margin: 10px 20px 0;
-    background: linear-gradient(to right, rgb(0, 132, 208), rgb(88, 142, 212) 40%, rgb(64, 185, 220));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    font-family: 'siYuanHeavy';
+  .dealbtn {
+    margin-top: 4vh;
+    margin-left: 2vw;
+    width: 7vw;
+    height: 4vh;
+    background:linear-gradient(to right bottom,rgb(2, 105, 201),#40b9dc);
+    border: #40b9dc solid 1px;
+    color: #fff;
+    border-radius: 0.3vw;
+  }
+
+  .chain {
+    display: flex;
+    height: 20vh;
+    align-items: center;
+  }
+
+  .block {
+    vertical-align: middle;
+    background:linear-gradient(to right bottom,rgb(2, 105, 201),#40b9dc);
+    height: 4vw;
+    width: 4vw;
+    border-radius: 0.9vh;
+    color: rgba(255, 255, 255, 0);
+    margin-left: 2vw;
+    font-size: 18px;
+  }
+
+  .block:hover {
+    transition: color 0.3s 0s ease-in-out;
+    color: white;
+  }
+
+  .block:active {
+    background: #40b9dc;
+  }
+
+  .line {
+    position: absolute;
+    vertical-align: middle;
+    background-color: black;
+    height: 2px;
+    width: 55vw;
+    box-shadow: 0 0 10px rgb(165, 207, 148);
+    z-index: -1;
+  }
+
+  .infoKey {
+    display: inline-block;
+    width: 10vw;
+    margin-left: 10vw;
+    font-weight: 600;
+  }
+
+  .rightbtn {
+    margin-top: 5vh;
+    margin-left: 15vw;
+    width: 5vw;
+    height: 3.5vh;
+    background:linear-gradient(to right bottom,rgb(2, 105, 201),#40b9dc);
+    border: 0;
+    border-radius: 0.6vh;
+    color: #fff;
+  }
+
+  .rightbtn:hover{
+    border: white solid 1px;
+  }
+
+  .rightbtn:active{
+    background:#40b9dc;
+  }
+
+  .dealbtn:hover{
+    border: white solid 1px;
+  }
+
+  .dealbtn:active{
+    background:#40b9dc;
   }
 
   /deep/ .acButton .el-radio-button__inner {
@@ -474,43 +553,4 @@
     font-size: 15px;
     font-family: "Consolas";
   }
-
-  .openTask {
-    width: 8.29vw;
-    height: 3.98vh;
-    margin-left: 6vw;
-    margin-top: 3vh;
-    margin-bottom: 3vh;
-    background: linear-gradient(to right, rgb(2, 132, 208), rgb(64, 185, 220));
-    color: white;
-    border-radius: 7px;
-  }
-
-  .openTask:hover {
-    background: linear-gradient(to right, rgba(2, 132, 208, 0.5), rgba(64, 185, 220, 0.7));
-  }
-
-  .openTask:active {
-    background: linear-gradient(to right, rgba(2, 132, 208, 0.3), rgba(64, 185, 220, 0.5));
-  }
-
-  .detail {
-    margin-right: 10px;
-    width: 4vw;
-    background-color: #40b9dc;
-    color: white;
-  }
-
-  .detail:hover {
-    background-color: rgba(64, 185, 220, 0.5);
-  }
-
-  .detail:active {
-    background-color: rgba(64, 185, 220, 0.3);
-  }
-
-  .pagination {
-    margin-left: 1vw;
-  }
-  
 </style>

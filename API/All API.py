@@ -946,6 +946,33 @@ def STX():
         return jsonify(e), 500
 
 
+@app.route("/ShowTX4", methods=['POST'])
+def STX4():
+    ''''
+    传入json
+    {"page":1}
+    '''
+    page = request.get_json()['page']
+    db = pymysql.connect(host="localhost", user="root", passwd="Wu_CRH.0523", port=3306, db="blockchain")
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    sql = 'select * from transaction where onchain="not" limit {},4;'.format(4 * (page - 1))
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        cursor.execute('select count(*) as num from transaction where onchain="not"')
+        num = cursor.fetchone()['num']
+        if result == ():
+            response = [{'num': num}]
+            return jsonify(response)
+        else:
+            result.append({"num": num})
+            cursor.close()
+            db.close()
+            return jsonify(result), 200  # 返回消息的全部信息
+    except Exception as e:
+        return jsonify(e), 500
+
+
 # 发布交易A——表中自动返回签名
 @app.route("/sig/tx/publish", methods=['POST'])
 def TxPublish():
@@ -1072,7 +1099,7 @@ def TXPublish():
 
     # 发布交易，将交易加入数据库
 
-    @app.route("/TXPublish", methods=['GET'])
+    @app.route("/TXPublish", methods=['POST'])
     def TXPublish():
         '''
         传入
@@ -1176,6 +1203,7 @@ def TXPublish():
                     cursor.close()
                     db.close()
                     return jsonify({"success": True}), 200
+
             else:
                 return jsonify({"success": False}), 500
         except Exception as e:
@@ -1183,7 +1211,7 @@ def TXPublish():
             app.logger.error("An error occurred: %s", str(e))
             return jsonify({"error": "Internal Server Error"}), 500
 
-    @app.route("/AddToMyBlock", methods=['GET'])
+    @app.route("/AddToMyBlock", methods=['POST'])
     def ATMB():
         ''''
         传入json

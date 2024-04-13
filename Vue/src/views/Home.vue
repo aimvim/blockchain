@@ -705,7 +705,7 @@
     } else if (index === '2') {
       router.push('/dealCommunity')
     } else if (index === '3') {
-
+      router.push('/myBlock')
     }
   }
 
@@ -733,7 +733,6 @@
 
   onMounted(() => {
     selectMenu()
-    selectTaskMenu()
     const getIndex = localStorage.getItem('index')
     if (getIndex !== null) {
       taskMenu.value = getIndex
@@ -746,6 +745,7 @@
         localStorage.setItem('index', '7')
       }
     }
+    selectTaskMenu()
     selectLoad()
     if (identity === '用户') {
       width.value = '13vw'
