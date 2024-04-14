@@ -22,26 +22,23 @@
       <div class="dialog">
         <div class="detailTitle">
           <span>SenderAddress :</span> <br>
+          <span>Signature :</span> <br>
           <span>Amount :</span> <br>
           <span>Fees :</span> <br>
           <span>Recipient :</span> <br>
-          <span v-if="index === 1">PrivateKey :</span>
         </div>
         <div class="detailValue">
           <span>&nbsp;&nbsp;{{ detail.senderadress }}</span> <br>
+          <span>&nbsp;&nbsp;{{ detail.signature }}</span> <br>
           <span>&nbsp;&nbsp;{{ detail.amount }}</span> <br>
           <span>&nbsp;&nbsp;{{ detail.fees }}</span> <br>
           <span>&nbsp;&nbsp;{{ detail.recipient }}</span> <br>
-          <el-form v-if="index === 1" ref="formRef" :model="form" status-icon :rules="rules">
-            <el-form-item prop="password">
-              <el-input style="width: 250px; margin-top: 1.5vh; margin-left: 0.5vw" v-model="form.password" placeholder="私钥" show-password />
-            </el-form-item>
-          </el-form>
         </div>
       </div>
       <div style="text-align: center" v-if="index === 1">
         <el-button class="plus" :icon="Plus" @click="add"></el-button>
       </div>
+      <div style="margin-top: 5vh"></div>
     </el-dialog>
   </div>
 </template>
@@ -49,18 +46,10 @@
 <script setup lang="ts" name="DealDetail">
   import {Plus} from "@element-plus/icons-vue";
   import {defineProps, ref, reactive} from "vue";
+  import axios from "axios";
 
   const dealDetail = ref(false);
   const formRef = ref()
-  const form = reactive({
-    password: ''
-  })
-
-  const rules = reactive({
-    password: [
-      {required: true, message: "请输入私钥", trigger: "blur"}
-    ]
-  })
 
   let { detail, index } = defineProps(['detail', 'index']);
 
@@ -69,7 +58,27 @@
   }
 
   function add() {
-
+    formRef.value.validate((valid) => {
+      if (valid) {
+        axios.post('http://localhost:5000/AddToMyBlock', {
+          Senderadress: detail.senderadress,
+          Recipient: detail.recipient,
+          Amount: detail.amount,
+          Fees: detail.fees,
+          Signature: detail.signature,
+          miner: localStorage.getItem('username')
+        }).then(res => {
+          if (res.data === 'success') {
+            dealDetail.value = false;
+            form.password = '';
+            formRef.value.clearValidate()
+            alert('添加成功')
+          } else {
+            alert('添加失败')
+          }
+        })
+      }
+    })
   }
 
 </script>

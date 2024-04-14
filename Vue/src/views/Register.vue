@@ -397,6 +397,10 @@
     color: white;
     float: left;
   }
+
+  .el-notification.right {
+    width: 30vw;
+  }
 </style>
 
 <style>

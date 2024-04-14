@@ -226,7 +226,8 @@
             ElMessage.success('操作成功')
             window.history.go(-1)
           }
-        }).catch(() => {
+        }).catch((res) => {
+          console.log(res)
           ElMessage.info('通信错误')
         }).finally(() => {
           fullscreenLoading.value = false

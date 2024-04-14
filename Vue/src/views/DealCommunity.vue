@@ -95,7 +95,7 @@
     </el-container>
   </div>
   <div style="display: flex">
-    <el-button class="openTask" @click="deal = true">发布交易</el-button>
+    <el-button class="openTask" @click="openDeal">发布交易</el-button>
     <el-input v-model="search" style="width: 11.46vw; margin-left: 50vw; height: 3.5vh; margin-top: 3vh"
             :prefix-icon="Search" placeholder="请输入" clearable/>
     <el-button class="detail" style="margin-left: 10px; margin-right: 0; margin-top: 3vh">搜索</el-button>
@@ -120,6 +120,41 @@
     <span style="margin-top: 2vh; margin-left: 20vw; padding: 7px; font-size: 15px; font-family: '黑体'; color: rgb(120, 120, 120)">共 {{ total }} 条</span>
     <el-pagination class="pagination" :current-page="curPage" :page-size="4" :pager-count="6" layout="prev, pager, next" @current-change="change" :total="total"></el-pagination>
   </div>
+  <el-dialog width="35%" v-model="dealDetail" :close-on-click-modal="false" :onClose="close">
+    <div style="text-align: center; font-size: 32px; font-family: Consolas">发布交易</div>
+    <div class="dialog">
+      <div class="detailTitle">
+        <span>SenderAddress :</span> <br>
+        <span>Amount :</span> <br>
+        <span>Fees :</span> <br>
+        <span>Recipient :</span> <br>
+        <span>PrivateKey :</span>
+      </div>
+      <div class="detailValue">
+        <el-form ref="formRef" :model="form" status-icon :rules="rules">
+          <el-form-item prop="senderAddress">
+            <el-input style="width: 250px; margin-top: 1.8vh; margin-left: 0.5vw" v-model="form.senderAddress" placeholder="请输入"/>
+          </el-form-item>
+          <el-form-item prop="amount">
+            <el-input style="width: 250px; margin-top: 1.5vh; margin-left: 0.5vw" v-model="form.amount" placeholder="请输入"/>
+          </el-form-item>
+          <el-form-item prop="fees">
+            <el-input style="width: 250px; margin-top: 1.5vh; margin-left: 0.5vw" v-model="form.fees" placeholder="请输入"/>
+          </el-form-item>
+          <el-form-item prop="recipient">
+            <el-input style="width: 250px; margin-top: 1.5vh; margin-left: 0.5vw" v-model="form.recipient" placeholder="请输入"/>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input style="width: 250px; margin-top: 1.5vh; margin-left: 0.5vw" v-model="form.password" placeholder="请输入" show-password />
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div style="text-align: center">
+      <el-button class="plus" @click="up">发布</el-button>
+    </div>
+    <div style="margin-top: 5vh"></div>
+  </el-dialog>
 </template>
   
 <script setup lang="ts" name="DealCommunity">
@@ -139,7 +174,16 @@
   const curPage = ref(1)
   const curIndex = ref('1')
   const fullscreenLoading = ref(false)
+  const dealDetail = ref(false)
   const accountNumber = ref(1)
+  const formRef = ref()
+  const form = reactive({
+    senderAddress: '',
+    amount: '',
+    fees: '',
+    recipient: '',
+    password: ''
+  })
   let dealData = reactive([{
     amount: '',
     fees: '',
@@ -172,6 +216,24 @@
   " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
 `
 
+  const rules = reactive({
+    senderAddress: [
+      {required: true, message: "请输入发送者地址", trigger: "blur"}
+    ],
+    amount: [
+      {required: true, message: "请输入金额", trigger: "blur"}
+    ],
+    fees: [
+      {required: true, message: "请输入手续费", trigger: "blur"}
+    ],
+    recipient: [
+      {required: true, message: "请输入接收者地址", trigger: "blur"}
+    ],
+    password: [
+      {required: true, message: "请输入私钥", trigger: "blur"}
+    ]
+  })
+
   const handleSelect2 = (index: string) => {
     curIndex.value = index
     if (index === '1') {
@@ -181,6 +243,39 @@
     } else if (index === '3') {
       router.push('/MyBlock')
     }
+  }
+
+  function up() {
+    formRef.value.validate((valid: boolean) => {
+      if (valid) {
+        fullscreenLoading.value = true
+        axios.post('http://localhost:5000/sig/tx/publish', {
+          sender_adress: form.senderAddress,
+          amount: form.amount,
+          Fees: form.fees,
+          recipient: form.recipient,
+          private_key: form.password
+        }).then(res => {
+          ElMessage.success('发布成功')
+          dealDetail.value = false
+          load()
+        }).catch(() => {
+          ElMessage.error('发布失败')
+        }).finally(() => {
+          fullscreenLoading.value = false
+        })
+      } else {
+        return false
+      }
+    })
+  }
+
+  function openDeal() {
+    dealDetail.value = true
+  }
+
+  function close() {
+    formRef.value.resetFields()
   }
 
   function change() {
@@ -512,5 +607,45 @@
   .pagination {
     margin-left: 1vw;
   }
+
+  .dialog {
+    line-height: 6vh;
+    margin-top: 2vh;
+    margin-left: 4vw;
+    font-size: 17px;
+    display: flex;
+  }
+
+  .detailTitle {
+    display: block;
+    color: #40b9dc;
+    width: 8vw;
+    text-align: right;
+    line-height: 7vh;
+  }
+
+  .detailValue {
+    display: block;
+    width: 24vw;
+    float: left;
+    color: #606060;
+  }
+
+  .plus {
+    margin-top: 2vh;
+    width: 5vw;
+    height: 3.2vh;
+    background-color: #40b9dc;
+    color: white;
+  }
+
+  .plus:hover {
+    background-color: rgba(64, 185, 220, 0.5);
+  }
+
+  .plus:active {
+    background-color: rgba(64, 185, 220, 0.3);
+  }
+
   
 </style>

@@ -98,23 +98,19 @@
             <el-button class="block" :icon="ZoomIn" style="margin-left: 8vw" @click="fake"></el-button>
             <el-button class="block" :icon="ZoomIn"></el-button>
             <el-button class="block" :icon="ZoomIn"></el-button>
-            <el-button class="block" :icon="ZoomIn"></el-button>
-            <el-button class="block" :icon="ZoomIn"></el-button>
-            <el-button class="block" :icon="ZoomIn"></el-button>
-            <el-button class="block" :icon="ZoomIn"></el-button>
-            <el-button class="block" :icon="ZoomIn"></el-button>
+            <el-button v-if="flag === true" class="block" :icon="ZoomIn"></el-button>
           </div>
           <hr color=#40b9dc SIZE=1>
           <button class="dealbtn">交易</button>
           <div style="width: 63vw;" v-loading="loading" element-loading-text="Loading..." :element-loading-spinner="svg"
                   element-loading-svg-view-box="-10, -10, 50, 50" element-loading-background="rgba(122, 122, 122, 0.8)">
             <div style="display: flex;">
-              <DealDetail :detail="dealData[0]" style="margin-bottom: 3vh" :index="1"/>
-              <DealDetail :detail="dealData[1]" style="margin-bottom: 3vh" :index="1"/>
+              <DealDetail :detail="dealData[0]" style="margin-bottom: 3vh" :index="2"/>
+              <DealDetail :detail="dealData[1]" style="margin-bottom: 3vh" :index="2"/>
             </div>
             <div style="display: flex;">
-              <DealDetail :detail="dealData[2]" style="margin-bottom: 3vh" :index="1"/>
-              <DealDetail :detail="dealData[3]" style="margin-bottom: 3vh" :index="1"/>
+              <DealDetail :detail="dealData[2]" style="margin-bottom: 3vh" :index="2"/>
+              <DealDetail :detail="dealData[3]" style="margin-bottom: 3vh" :index="2"/>
             </div>
           </div>
           <div style="text-align: center; display: flex; margin-top: 2vh; margin-left: 5vw">
@@ -124,17 +120,69 @@
         </div>
         <div class="rightcontent">
           <div class="righttop" style="height: 55%;">
-            <span class="infoKey" style="margin-top: 6vh;">version</span>{{ version }} <br>
-            <span class="infoKey">prehash</span>{{  }} <br>
-            <span class="infoKey">index</span>{{  }} <br>
-            <span class="infoKey">nonce</span>{{  }} <br>
-            <span class="infoKey">markle_root</span>{{  }} <br>
-            <span class="infoKey">target</span>{{  }} <br>
-            <button class="rightbtn">提交</button>
+            <span class="infoKey" style="margin-top: 6vh;">version</span>1.0 <br>
+            <span class="infoKey">prehash</span>a8fdc205a9f19cc1c7507a60c4f01b13d11d7fd0<br>
+            <span class="infoKey">index</span>4<br>
+            <span class="infoKey">nonce</span>7.26<br>
+            <span class="infoKey">markle_root</span>as5sda56wer5cc1sad5548a77a6fgh7n7fw66gh<br>
+            <span class="infoKey">target</span>7<br>
+            <button class="rightbtn" @click="commit" v-loading.fullscreen.lock="fullscreenLoading">提交</button>
           </div>
           <hr color=#40b9dc SIZE=1>
-          <div class="rightbottom" style="text-align: center;vertical-align: middle;">
-            json
+          <div style="text-align: center; font-family: Consolas; font-size: 24px; margin-top: 1vh">JSON</div>
+          <div class="rightbottom">
+            <el-scrollbar>
+              <div style="word-break: break-all">
+                { <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "txid": "000000000000000000000000000000000000000000000000000000000000000", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "size": 205, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "version": 2, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "locktime": 0, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "fee": 1232, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "inputs": [ <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp; { <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"coinbase": false, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"txid": "3a37b81f3e916adfe121e593a8ddb74717e11195a24387da1a20715ffdf773d6", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"output": 1, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"sigscript": "", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"sequence": 4294967293, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"pkscript": "5120e0383d30ff85a28d7cbd4b97e6deee1c1486b1616ee70e24d4c15689ea7d5070", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"value": 158842, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"address": "1HWupzTthp88LakvFmiPuJK2KJqCfrdDGn", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;"witness": [ <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"bfbd7f959a8d235a555c31d5ac646f189941a1aab9a2b51af4da419f7dd9fe907be254b3eb13f45a2e88f5812734fb56900f7486bbaaa7a93ef45e5b1996a673" <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;] <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp; } <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; ], <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "outputs": [ <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;{ <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"address": "1HWupzTthp88LakvFmiPuJK2KJqCfrdDGn", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"pkscript": "512027afe9959d0316ca80bccdf6ced1c22c57ccbf4d99f98e1dd9ff69ef181fb48e", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"value": 1762, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"spent": true, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"spender": { <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"txid": "6455a82939ae19f748dfc4ed21fc02c2ed69cfaba25a3f9da7173e8acfcb2921", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"input": 0 <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;} <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;}, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;{ <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"address": "1HWupzTthp88LakvFmiPuJK2KJqCfrdDGn", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"pkscript": "5120e0383d30ff85a28d7cbd4b97e6deee1c1486b1616ee70e24d4c15689ea7d5070", <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"value": 155848, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"spent": false, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;"spender": null <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;   &nbsp;&nbsp;&nbsp;&nbsp;} <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; ], <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "block": { <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;  "mempool": 1712391064 <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; }, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "deleted": false, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "time": 1712391064, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "rbf": true, <br>
+                  &nbsp;&nbsp;&nbsp;&nbsp; "weight": 616 <br>
+                } <br>
+              </div>
+            </el-scrollbar>
           </div>
         </div>
         </el-main>
@@ -145,7 +193,7 @@
   
 <script setup lang="ts" name="MyBlock">
 import {onMounted, reactive, ref} from "vue"
-import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@element-plus/icons-vue"
+import {CircleClose, CircleCloseFilled, ZoomIn} from "@element-plus/icons-vue"
   import Detail from "../components/DealDetail.vue"
   import router from "@/router";
   import axios from "axios";
@@ -157,6 +205,7 @@ import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@eleme
   const total = ref(0)
   const loading = ref(false)
   const curPage = ref(1)
+  const flag = ref(false)
   const curIndex = ref('1')
   const accountNumber = ref(1)
   const fullscreenLoading = ref(false)
@@ -202,7 +251,6 @@ import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@eleme
   const timeCoin1 = 2311.01;
   const timeCoin2 = 547.50;
   const timeCoin3 = 14.92;
-  const version = 1.0;
 
   function change() {
     load()
@@ -210,6 +258,16 @@ import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@eleme
 
   function fake() {
     router.push('/blockDetail')
+  }
+
+  function commit() {
+    fullscreenLoading.value = true
+    setTimeout(() => {
+      fullscreenLoading.value = false
+      ElMessage.success('提交成功')
+      flag.value = true
+    }, 2000)
+
   }
 
   function load() {
@@ -360,8 +418,11 @@ import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@eleme
 
   .infoKey {
     display: inline-block;
-    width: 10vw;
-    margin-left: 10vw;
+    width: 8vw;
+    margin-bottom: 2vh;
+    font-family: '黑体';
+    margin-left: 4vw;
+    font-size: 18px;
     font-weight: 600;
   }
 
@@ -553,4 +614,14 @@ import {CircleClose, CircleCloseFilled, CirclePlus, Search, ZoomIn} from "@eleme
     font-size: 15px;
     font-family: "Consolas";
   }
+
+  .rightbottom {
+    width: 31vw;
+    height: 30vh;
+    border: #40b9dc solid 1px;
+    border-radius: 7px;
+    margin-left: 2vw;
+    margin-top: 2vh;
+  }
+
 </style>
