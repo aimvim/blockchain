@@ -3,9 +3,9 @@
     <el-container>
       <el-header height="8.26vh" style="">
         <div style="display: flex;">
-          <div class="title">
-            <span style="margin-left: 1.3vw; font-size:1.5vw">时间银行管理系统</span><br>
-            <span style="font-size: 0.9vw">Time Bank Management System</span>
+          <div class="title" style="margin-left: 0">
+            <span style="margin-left: 1.3vw; font-size: 1.5vw">智慧养老服务平台</span><br>
+            <span style="font-size: 0.8vw">Smart Elderly Care Service Platform</span>
           </div>
           <el-menu active-text-color="#fff" text-color="#40b9dc" :default-active="menu"
                    class="menu" mode="horizontal" @select="handleSelect1" :ellipsis="false"> <!-- 菜单激活回调 -->

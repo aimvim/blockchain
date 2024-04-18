@@ -398,7 +398,7 @@
     float: left;
   }
 
-  .el-notification.right {
+  .el-notification .right {
     width: 30vw;
   }
 </style>
