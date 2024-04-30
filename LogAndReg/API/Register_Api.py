@@ -1,13 +1,14 @@
 import hashlib
 from flask import Flask, request, jsonify
 import pymysql
+
+from flask_cors import CORS
 from LogAndReg.functions.Account_OL import *
 from LogAndReg.functions.Account import *
 from LogAndReg.functions.blockchain import *
 
-
 app = Flask(__name__)
-
+CORS(app)
 #user注册需要邀请码和证明材料，并且需要等待后才能进行
 @app.route("/volunteer_register",methods=['POST'])
 def volunteer_register():
@@ -19,7 +20,7 @@ def volunteer_register():
     '''
     UserInfo = request.get_json()
     try:
-        db = pymysql.connect(host="localhost",user="root",passwd="123456",port=3306,charset="utf8",db="blockchain")
+        db = pymysql.connect(host="localhost",user="root",passwd="Wu_CRH.0523",port=3306,charset="utf8",db="blockchain")
     except Exception as e:
         return e,400 #如果数据库连接失败则返回错误原因
     cursor = db.cursor()

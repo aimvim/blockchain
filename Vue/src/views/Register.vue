@@ -44,7 +44,8 @@
           </div>
           <div style="display: flex" v-if="form.identity === '用户'">
             <el-icon style="margin-right: 10px; margin-top: 5px" color="#fff" size="19px"><DocumentChecked /></el-icon>
-            <el-upload class="upload" drag action="awa" multiple :before-upload="beforeUpload">
+            <el-upload class="upload" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                       :auto-upload="false" drag multiple :before-upload="beforeUpload">
               <el-icon class="el-icon--upload"><upload-filled /></el-icon>
               <div class="el-upload__text">
                 将图片拖拽至这里或 <em>手动上传</em>
@@ -66,12 +67,10 @@
 </template>
 
 <script setup lang="ts" name="Login">
-import {reactive, ref, toRef} from "vue"
-import type {UploadProps} from "element-plus";
-import axios from "axios";
-import router from "@/router";
-
-  // TODO: 补充注册逻辑
+  import {reactive, ref, toRef} from "vue"
+  import {type UploadProps} from "element-plus";
+  import axios from "axios";
+  import router from "@/router";
 
   const form = reactive({
     identity: "用户",
@@ -137,7 +136,6 @@ import router from "@/router";
   const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
     const allowedFormats = ['image/jpeg', 'image/png'];
     if (!allowedFormats.includes(rawFile.type)) {
-      // TODO: 试验图片格式
       ElMessage.error('Avatar picture must be in JPG or PNG format!');
       return false;
     }
@@ -146,59 +144,90 @@ import router from "@/router";
   }
 
   function register() {
-    if (formRef.value.validate()) {
-      if (form.identity === '用户') {
-        axios.post('http://localhost:5000/user_register',
-            {
-              id: form.username,
-              password: form.password,
-              register_code: form.registrationCode,
-              proof: "sdandsehnqoinqoi"
-            }).then(res => {
-          if (res.status === 200) {
-            ElMessage.success('注册成功')
-            localStorage.setItem('identity', form.identity)
-            localStorage.setItem('username', form.username)
-            router.push('/login')
-          } else {
-            ElMessage.error('注册失败')
-          }
-        })
-      } else if (form.identity === '志愿者') {
-        axios.post('http://localhost:5000/volunteer_register',
+    formRef.value.validate((value) => {
+      if (value) {
+        if (form.identity === '用户') {
+          axios.post('http://localhost:5000/user_register',
+              {
+                id: form.username,
+                passwd: form.password,
+                register_code: form.registrationCode,
+                proof: "sdandsehnqoinqoi"
+              }).then(res => {
+            if (res.status === 200) {
+              ElMessage.success('注册成功')
+              localStorage.setItem('identity', form.identity)
+              localStorage.setItem('username', form.username)
+              router.push('/login')
+            } else {
+              ElMessage.error('注册失败')
+            }
+          }).catch(res => {
+            if (res.response.data === 'Wrong Register Code!') {
+              ElMessage.error('注册码错误')
+            } else {
+              ElMessage.error('注册失败')
+            }
+          })
+        } else if (form.identity === '志愿者') {
+          axios.post('http://localhost:5000/volunteer_register',
             {
               id: form.username,
               password: form.password,
               invitationCode: form.invitationCode
             }).then(res => {
-          if (res.status === 200) {
-            ElMessage.success('注册成功')
-            localStorage.setItem('identity', form.identity)
-            localStorage.setItem('username', form.username)
-            router.push('/login')
-          } else {
-            ElMessage.error('注册失败')
-          }
-        })
-      } else {
-        axios.post('http://localhost:5000/admin_register',
-            {
-              id: form.username,
-              passwd: form.password,
-              register_code: form.registrationCode,
-              invite_code: form.invitationCode
-            }).then(res => {
-          if (res.status === 200) {
-            ElMessage.success('注册成功')
-            localStorage.setItem('identity', form.identity)
-            localStorage.setItem('username', form.username)
-            router.push('/login')
-          } else {
-            ElMessage.error('注册失败')
-          }
-        })
+            if (res.status === 200) {
+              ElMessage.success('注册成功')
+              localStorage.setItem('identity', form.identity)
+              localStorage.setItem('username', form.username)
+              ElNotification({
+      title: '请保管好您的私钥',
+      dangerouslyUseHTMLString: true,
+      message: `在复制完毕前请勿关闭此通知。
+<pre style="margin-left: 0; white-space: pre-wrap; float: left; width: 25vw; word-break: break-all;">
+{
+    "adress": "16xrj8WgLRNsJDfqA6i8BQPqtXJtbyeZoT",
+    "pk": "4483e4e2e1077cb5bbf10be329e1f788b1c5e86a2c2895263da6e3a9ba51c7332b9c3c8795c6ea4223a6f89fea85fb5a6dcc7e9fbb3a2f480a771b1a77f027c0",
+    "sk": "36e729872b09df5df6759f332c606066185946c5bd6ffbcb35ad35dd2b51d8eb"
+}
+</pre>
+
+      `,
+      type: 'warning',
+      duration: 0,
+      customClass: 'note'
+    })
+              router.push('/login')
+            } else {
+              ElMessage.error('注册失败')
+            }
+          })
+        } else {
+          axios.post('http://localhost:5000/admin_register',
+              {
+                id: form.username,
+                passwd: form.password,
+                register_code: form.registrationCode,
+                invite_code: form.invitationCode
+              }).then(res => {
+            if (res.status === 200) {
+              ElMessage.success('注册成功')
+              localStorage.setItem('identity', form.identity)
+              localStorage.setItem('username', form.username)
+              router.push('/login')
+            } else {
+              ElMessage.error('注册失败')
+            }
+          }).catch(res => {
+            if (res.response.data === 'Wrong Register Code!') {
+              ElMessage.error('注册码错误')
+            } else {
+              ElMessage.error('注册失败')
+            }
+          })
+        }
       }
-    }
+    })
   }
 
 </script>
@@ -320,6 +349,30 @@ import router from "@/router";
     background-color: rgba(255, 255, 255, 0);
   }
 
+  .upload {
+    width: 13.1vw;
+  }
+
+  /deep/ .upload .el-upload-list {
+    margin-top: 30px;
+  }
+
+  /deep/ .upload .el-upload-list__item {
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+
+  /deep/ .upload .el-upload-list__item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /deep/ .el-upload-list__item-name .el-icon {
+    color: white;
+  }
+
+  /deep/ .upload .el-upload-list__item-name {
+    color: white;
+  }
+
   /deep/ .el-upload .el-upload-dragger {
     width: 13.1vw;
     height: 11vh;
@@ -345,4 +398,13 @@ import router from "@/router";
     float: left;
   }
 
+  .el-notification .right {
+    width: 30vw;
+  }
+</style>
+
+<style>
+  .note {
+    width: 30vw;
+  }
 </style>
